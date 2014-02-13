@@ -2,7 +2,50 @@ var cheerio = require('cheerio');
 
 var count = 0;
 
-var variableRE = /\{\{(.*?)\}\}/;
+var variableRE = /\{\{(.*?)\}\}/g;
+
+function getVariableArray(string) {
+	var array = [];
+	var lastOffset = 0;
+	string.replace(variableRE, function(match, p1, offset, string) {
+		// Add intermediate text
+		var text = string.slice(lastOffset, offset);
+		if (text.length) {
+			array.push(text);
+		}
+
+		array.push({ variable: p1 });
+
+		lastOffset = offset + match.length;
+
+		return match;
+	});
+
+	if (lastOffset !== string.length) {
+		array.push(string.slice(lastOffset));
+	}
+
+	return array;
+}
+
+function makeVariableExpression(string) {
+	var expression = '';
+	var pieces = getVariableArray(string);
+	pieces.forEach(function(piece, index) {
+		if (index !== 0) {
+			expression += '+';
+		}
+
+		if (typeof piece === 'string') {
+			expression += safe(piece);
+		}
+		else {
+			expression += 'data['+safe(piece.variable)+']';
+		}
+	});
+
+	return expression;
+}
 
 function safe(string) {
 	return JSON.stringify(string);
@@ -41,7 +84,7 @@ function setAttribute(elName, attr, value) {
 	var variableMatches = value.match(variableRE);
 	var expression;
 	if (variableMatches) {
-		expression = 'data['+safe(variableMatches[1])+']';
+		expression = makeVariableExpression(value);
 	}
 	else {
 		expression = safe(value);
@@ -53,7 +96,7 @@ function setTextContent(elName, text) {
 	var statement = elName+'.textContent = ';
 	var variableMatches = text.match(variableRE);
 	if (variableMatches) {
-		statement += 'data['+safe(variableMatches[1])+']';
+		statement += makeVariableExpression(text);
 	}
 	else {
 		statement += safe(text);
@@ -74,6 +117,10 @@ function buildFunctionBody($, $el, parentName) {
 
 		var attrs = el.attribs;
 		for (var attr in attrs) {
+			// Skip internal handles
+			if (attr === 'data-handle') {
+				continue;
+			}
 			func += setAttribute(elName, attr, attrs[attr]);
 		}
 
@@ -109,4 +156,4 @@ function compile(html) {
 	return new Function('data', functionBody);
 }
 
-console.log(compile('<div class="cow" data-handle="$cow"></div><ul id="fruits" class="{{variable}}" data-handle="ul"><li class="test1">Test1</li><li class="test2">{{var1}}</li></ul>').toString());
+console.log(compile('<ul data-handle="$cow" class="{{var1}}"><li class="test1">Test1</li><li class="test2">Text {{var2}} text</li></ul>').toString());
