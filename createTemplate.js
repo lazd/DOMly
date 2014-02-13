@@ -2,6 +2,8 @@ var cheerio = require('cheerio');
 
 var count = 0;
 
+var variableRE = /\{\{(.*?)\}\}/;
+
 function safe(string) {
 	return JSON.stringify(string);
 }
@@ -40,7 +42,16 @@ function setAttribute(elName, attr, value) {
 }
 
 function setTextContent(elName, text) {
-	return elName+'.textContent = '+safe(text)+';\n'
+	var statement = elName+'.textContent = ';
+	var variableMatches = text.match(variableRE);
+	if (variableMatches) {
+		statement += 'data['+safe(variableMatches[1])+']';
+	}
+	else {
+		statement += safe(text);
+	}
+	statement += ';\n';
+	return statement;
 }
 
 function buildFunctionBody($, $el, parentName) {
@@ -87,7 +98,7 @@ function compile(html) {
 		functionBody += 'return el0;\n';
 	}
 
-	return new Function(functionBody);
+	return new Function('data', functionBody);
 }
 
-console.log(compile('<div class="cow" data-handle="$cow"></div><ul id="fruits" data-handle="ul"><li class="test1">Test1</li><li class="test2">Test2</li></ul>').toString());
+console.log(compile('<div class="cow" data-handle="$cow"></div><ul id="fruits" data-handle="ul"><li class="test1">Test1</li><li class="test2">{{var1}}</li></ul>').toString());
