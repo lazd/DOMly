@@ -29,6 +29,10 @@ function getVariableArray(string) {
 }
 
 function makeVariableExpression(string) {
+	if (!usesVariables(string)) {
+		return safe(string);
+	}
+
 	var expression = '';
 	var pieces = getVariableArray(string);
 	pieces.forEach(function(piece, index) {
@@ -81,56 +85,53 @@ function createElement(elName, tag, elHandle) {
 }
 
 function setAttribute(elName, attr, value) {
-	var variableMatches = value.match(variableRE);
-	var expression;
-	if (variableMatches) {
-		expression = makeVariableExpression(value);
-	}
-	else {
-		expression = safe(value);
-	}
-	return elName+'.setAttribute('+safe(attr)+', '+expression+');\n'
+	return elName+'.setAttribute('+safe(attr)+', '+makeVariableExpression(value)+');\n'
 }
 
 function setTextContent(elName, text) {
-	var statement = elName+'.textContent = ';
-	var variableMatches = text.match(variableRE);
-	if (variableMatches) {
-		statement += makeVariableExpression(text);
-	}
-	else {
-		statement += safe(text);
-	}
-	statement += ';\n';
-	return statement;
+	return elName+'.textContent = '+makeVariableExpression(text)+';\n';
 }
 
-function buildFunctionBody($, $el, parentName) {
+function usesVariables(string) {
+	return string.match(variableRE);
+}
+
+function createTextNode(elName, text) {
+	return 'var '+elName+' = document.createTextNode('+makeVariableExpression(text)+');\n';
+}
+
+function buildFunctionBody($, el, parentName) {
 	var func = '';
 
-	$el.each(function(index, el) {
-		var $el = $(el);
-
+	el.children.forEach(function(el, index) {
 		var elName = getElName();
+		if (el.type === 'tag') {
+			func += createElement(elName, el.name, el.attribs['data-handle']);
 
-		func += createElement(elName, el.name, $el.data('handle'));
-
-		var attrs = el.attribs;
-		for (var attr in attrs) {
-			// Skip internal handles
-			if (attr === 'data-handle') {
-				continue;
+			var attrs = el.attribs;
+			for (var attr in attrs) {
+				// Skip internal handles
+				if (attr === 'data-handle') {
+					continue;
+				}
+				func += setAttribute(elName, attr, attrs[attr]);
 			}
-			func += setAttribute(elName, attr, attrs[attr]);
-		}
 
-		var children = $el.children();
-		var text = $el.text();
-		if (children.length) {
-			func += buildFunctionBody($, $(children), elName);
+			var children = el.children;
+			if (children.length) {
+				func += buildFunctionBody($, el, elName);
+			}
+			else {
+				var text = $(el).text();
+				if (text.length) {
+					// Set text content directly if there are no children
+					func += setTextContent(elName, text);
+				}
+			}
 		}
-		else if (text != '') {
-			func += setTextContent(elName, text);
+		else if (el.type === 'text') {
+			var text = $(el).text();
+			func += createTextNode(elName, text);
 		}
 
 		if (parentName) {
@@ -144,11 +145,13 @@ function buildFunctionBody($, $el, parentName) {
 function compile(html) {
 	var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
 
-	var $children = $('#__template-root__').children();
+	var root = $('#__template-root__')[0];
 
-	var functionBody = buildFunctionBody($, $children);
+	console.log(root);
 
-	if ($children.length === 1) {
+	var functionBody = buildFunctionBody($, root);
+
+	if (root.children.length === 1) {
 		// Return the root element, if there's only one
 		functionBody += 'return el0;\n';
 	}
@@ -156,4 +159,4 @@ function compile(html) {
 	return new Function('data', functionBody);
 }
 
-console.log(compile('<ul data-handle="$cow" class="{{var1}}"><li class="test1">Test1</li><li class="test2">Text {{var2}} text</li></ul>').toString());
+console.log(compile('<ul data-handle="$cow" class="{{var1}}"><li class="test1">Test1</li><li class="test2">Text {{var2}} text<a>anchortext</a></li></ul>').toString());
