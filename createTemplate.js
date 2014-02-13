@@ -12,10 +12,26 @@ function getElName() {
 
 function createElement(elName, tag, elHandle) {
 	var statement = 'var '+elName+' = ';
+	var handleUsesDollar;
+	var handleProperty;
+	var elHandleBare;
+	var handleProperty;
+
 	if (elHandle) {
-		statement += 'this['+safe(elHandle)+'] = ';
+		handleUsesDollar = elHandle.charAt(0) === '$';
+		elHandleBare = handleUsesDollar ? elHandle.slice(1) : elHandle;
+		handleProperty = 'this['+safe(elHandleBare)+']';
+	}
+
+	if (elHandle) {
+		statement += handleProperty+' = ';
 	}
 	statement += 'document.createElement("'+tag+'");\n';
+
+	if (elHandle && handleUsesDollar) {
+		statement += 'this['+safe(elHandle)+'] = $('+elName+');\n';
+	}
+
 	return statement;
 }
 
@@ -69,4 +85,4 @@ function compile(html) {
 	return new Function(functionBody);
 }
 
-console.log(compile('<div class="cow"></div><ul id="fruits" data-handle="ul"><li class="test1">Test1</li><li class="test2">Test2</li></ul>').toString());
+console.log(compile('<div class="cow" data-handle="$cow"></div><ul id="fruits" data-handle="ul"><li class="test1">Test1</li><li class="test2">Test2</li></ul>').toString());
