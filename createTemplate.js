@@ -62,13 +62,11 @@ function buildFunctionBody($, $el, parentName) {
 function compile(html) {
 	var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
 
-	var $first = $('#__template-root__').children(0);
+	var $children = $('#__template-root__').children();
 
-	var functionBody = buildFunctionBody($, $first);
-
-	functionBody += 'return el0;';
+	var functionBody = buildFunctionBody($, $children);
 
 	return new Function(functionBody);
 }
 
-console.log(compile('<ul id="fruits" data-handle="ul"><li class="test1">Test1</li><li class="test2">Test2</li></ul>').toString());
+console.log(compile('<div class="cow"></div><ul id="fruits" data-handle="ul"><li class="test1">Test1</li><li class="test2">Test2</li></ul>').toString());
