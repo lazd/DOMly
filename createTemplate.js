@@ -38,7 +38,15 @@ function createElement(elName, tag, elHandle) {
 }
 
 function setAttribute(elName, attr, value) {
-	return elName+'.setAttribute('+safe(attr)+', '+safe(value)+');\n'
+	var variableMatches = value.match(variableRE);
+	var expression;
+	if (variableMatches) {
+		expression = 'data['+safe(variableMatches[1])+']';
+	}
+	else {
+		expression = safe(value);
+	}
+	return elName+'.setAttribute('+safe(attr)+', '+expression+');\n'
 }
 
 function setTextContent(elName, text) {
@@ -101,4 +109,4 @@ function compile(html) {
 	return new Function('data', functionBody);
 }
 
-console.log(compile('<div class="cow" data-handle="$cow"></div><ul id="fruits" data-handle="ul"><li class="test1">Test1</li><li class="test2">{{var1}}</li></ul>').toString());
+console.log(compile('<div class="cow" data-handle="$cow"></div><ul id="fruits" class="{{variable}}" data-handle="ul"><li class="test1">Test1</li><li class="test2">{{var1}}</li></ul>').toString());
