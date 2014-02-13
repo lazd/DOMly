@@ -82,6 +82,11 @@ function compile(html) {
 
 	var functionBody = buildFunctionBody($, $children);
 
+	if ($children.length === 1) {
+		// Return the root element, if there's only one
+		functionBody += 'return el0;\n';
+	}
+
 	return new Function(functionBody);
 }
 
