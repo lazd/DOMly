@@ -10,9 +10,13 @@ function getElName() {
 	return 'el'+(count++);
 }
 
-function createElement(elName, tag) {
-	console.log('Creating element for'+elName);
-	return 'var '+elName+' = document.createElement("'+tag+'");\n'
+function createElement(elName, tag, elHandle) {
+	var statement = 'var '+elName+' = ';
+	if (elHandle) {
+		statement += 'this['+safe(elHandle)+'] = ';
+	}
+	statement += 'document.createElement("'+tag+'");\n';
+	return statement;
 }
 
 function setAttribute(elName, attr, value) {
@@ -30,7 +34,8 @@ function buildFunctionBody($, $el, parentName) {
 		var $el = $(el);
 
 		var elName = getElName();
-		func += createElement(elName, el.name);
+
+		func += createElement(elName, el.name, $el.data('handle'));
 
 		var attrs = el.attribs;
 		for (var attr in attrs) {
@@ -66,4 +71,4 @@ function compile(html) {
 	return new Function(functionBody);
 }
 
-console.log(compile('<ul id="fruits"><li class="test1">Test1</li><li class="test2">Test2</li></ul>').toString());
+console.log(compile('<ul id="fruits" data-handle="ul"><li class="test1">Test1</li><li class="test2">Test2</li></ul>').toString());
