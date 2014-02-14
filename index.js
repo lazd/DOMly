@@ -2,6 +2,8 @@ var cheerio = require('cheerio');
 
 var variableRE = /\{\{(.*?)\}\}/g;
 var blankRE = /^[\s]*$/;
+var debug = false;
+var count;
 
 function getVariableArray(string) {
   var array = [];
@@ -104,28 +106,50 @@ function createTextNode(elName, text) {
   return 'var '+elName+' = document.createTextNode('+makeVariableExpression(text)+');\n';
 }
 
-function buildFunctionBody($, el, options, parentName, count) {
-  count = count || 0;
+function dataWrap(str) {
+  return 'data['+safe(str)+']';
+}
+
+function buildFunctionBody($, el, options, parentName) {
   var func = '';
   var text;
 
   el.children.forEach(function(el) {
     var elName = 'el'+(count++);
+    var doAppend = true;
+    var needsClose = false;
+    var elseEl;
     if (el.type === 'tag') {
-      func += createElement(elName, el.name, el.attribs['data-handle']);
+      // Process special tags
+      if (el.name === 'if') {
+        // Anything inside of the if should be inserted in the parent
+        elName = parentName;
+        doAppend = false;
+        needsClose = true;
+        func += 'if ('+Object.keys(el.attribs).map(dataWrap).join('&&')+') {\n';
 
-      var attrs = el.attribs;
-      for (var attr in attrs) {
-        // Skip internal handles
-        if (attr === 'data-handle') {
-          continue;
+        // Find else statement
+        elseEl = $(el).children('else');
+        if (elseEl.length) {
+          $(elseEl).remove();
         }
-        func += setAttribute(elName, attr, attrs[attr]);
+      }
+      else {
+        func += createElement(elName, el.name, el.attribs['data-handle']);
+
+        var attrs = el.attribs;
+        for (var attr in attrs) {
+          // Skip internal handles
+          if (attr === 'data-handle') {
+            continue;
+          }
+          func += setAttribute(elName, attr, attrs[attr]);
+        }
       }
 
       var children = el.children;
       if (children.length) {
-        func += buildFunctionBody($, el, options, elName, count);
+        func += buildFunctionBody($, el, options, elName);
       }
       else {
         text = $(el).text();
@@ -133,6 +157,16 @@ function buildFunctionBody($, el, options, parentName, count) {
         if (!(options.stripWhitespace && isBlank(text)) || text.length) {
           // Set text content directly if there are no children
           func += setTextContent(elName, text);
+        }
+      }
+
+      if (needsClose) {
+        func += '}\n';
+
+        if (elseEl.length) {
+          func += 'else {\n';
+          func += buildFunctionBody($, elseEl[0], options, elName);
+          func += '}\n';
         }
       }
     }
@@ -147,7 +181,7 @@ function buildFunctionBody($, el, options, parentName, count) {
       func += createTextNode(elName, text);
     }
 
-    if (parentName) {
+    if (parentName && doAppend) {
       func += parentName+'.appendChild('+elName+');\n';
     }
   });
@@ -155,11 +189,51 @@ function buildFunctionBody($, el, options, parentName, count) {
   return func;
 }
 
+function indent(spaces) {
+  return (new Array(spaces)).join('\t');
+}
+
+function prettyPrint(node, spaces) {
+  var isFirst = spaces === undefined;
+
+  spaces = spaces || 0;
+
+  var name = node.type === 'tag' ? node.name : 'text';
+  var desc = '';
+
+  if (node.type === 'text') {
+    desc = node.data;
+  }
+  else {
+    for (var attr in node.attribs) {
+      desc += attr+'='+node.attribs[attr]+' ';
+    }
+  }
+
+  if (!isFirst) {
+    console.log(indent(spaces), name, desc);
+  }
+
+  if (node.children) {
+    node.children.forEach(function(child) {
+      prettyPrint(child, spaces+1);
+    })
+  }
+}
+
 function compile(html, options) {
   var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
 
   var root = $('#__template-root__')[0];
 
+  if (debug) {
+    prettyPrint(root);
+  }
+
+  // Reset count
+  count = 0;
+
+  // Build function body
   var functionBody = buildFunctionBody($, root, options || {});
 
   if (root.children.length === 1) {
