@@ -143,11 +143,12 @@ function buildFunctionBody($, el, parentName) {
 }
 
 function compile(html) {
+	// Reset count
+	count = 0;
+
 	var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
 
 	var root = $('#__template-root__')[0];
-
-	console.log(root);
 
 	var functionBody = buildFunctionBody($, root);
 
@@ -159,4 +160,4 @@ function compile(html) {
 	return new Function('data', functionBody);
 }
 
-console.log(compile('<ul data-handle="$cow" class="{{var1}}"><li class="test1">Test1</li><li class="test2">Text {{var2}} text<a>anchortext</a></li></ul>').toString());
+module.exports = compile;

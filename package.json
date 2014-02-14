@@ -9,6 +9,9 @@
   "author": "",
   "license": "BSD-2-Clause",
   "devDependencies": {
-    "cheerio": "~0.13.1"
+    "cheerio": "~0.13.1",
+    "jsdom": "~0.10.1",
+    "chai": "~1.9.0",
+    "mocha": "~1.17.1"
   }
 }
