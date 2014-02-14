@@ -1,12 +1,11 @@
 var cheerio = require('cheerio');
 
-var count = 0;
-
 var variableRE = /\{\{(.*?)\}\}/g;
 
 function getVariableArray(string) {
   var array = [];
   var lastOffset = 0;
+
   string.replace(variableRE, function(match, p1, offset, string) {
     // Add intermediate text
     var text = string.slice(lastOffset, offset);
@@ -14,6 +13,7 @@ function getVariableArray(string) {
       array.push(text);
     }
 
+    // Add variables
     array.push({ variable: p1 });
 
     lastOffset = offset + match.length;
@@ -21,6 +21,7 @@ function getVariableArray(string) {
     return match;
   });
 
+  // Add the last bit of text
   if (lastOffset !== string.length) {
     array.push(string.slice(lastOffset));
   }
@@ -36,14 +37,17 @@ function makeVariableExpression(string) {
   var expression = '';
   var pieces = getVariableArray(string);
   pieces.forEach(function(piece, index) {
+    // Concat pieces together
     if (index !== 0) {
       expression += '+';
     }
 
     if (typeof piece === 'string') {
+      // Include text directly
       expression += safe(piece);
     }
     else {
+      // Substitute variables
       expression += 'data['+safe(piece.variable)+']';
     }
   });
@@ -53,10 +57,6 @@ function makeVariableExpression(string) {
 
 function safe(string) {
   return JSON.stringify(string);
-}
-
-function getElName() {
-  return 'el'+(count++);
 }
 
 function createElement(elName, tag, elHandle) {
@@ -100,11 +100,12 @@ function createTextNode(elName, text) {
   return 'var '+elName+' = document.createTextNode('+makeVariableExpression(text)+');\n';
 }
 
-function buildFunctionBody($, el, parentName) {
+function buildFunctionBody($, el, parentName, count) {
+  count = count || 0;
   var func = '';
 
   el.children.forEach(function(el, index) {
-    var elName = getElName();
+    var elName = 'el'+(count++);
     if (el.type === 'tag') {
       func += createElement(elName, el.name, el.attribs['data-handle']);
 
@@ -119,7 +120,7 @@ function buildFunctionBody($, el, parentName) {
 
       var children = el.children;
       if (children.length) {
-        func += buildFunctionBody($, el, elName);
+        func += buildFunctionBody($, el, elName, count);
       }
       else {
         var text = $(el).text();
@@ -131,7 +132,9 @@ function buildFunctionBody($, el, parentName) {
     }
     else if (el.type === 'text') {
       var text = $(el).text();
-      func += createTextNode(elName, text);
+      if (text.length) {
+        func += createTextNode(elName, text);
+      }
     }
 
     if (parentName) {
@@ -143,9 +146,6 @@ function buildFunctionBody($, el, parentName) {
 }
 
 function compile(html) {
-  // Reset count
-  count = 0;
-
   var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
 
   var root = $('#__template-root__')[0];
