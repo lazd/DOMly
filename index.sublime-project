@@ -1,0 +1,11 @@
+{
+  "tabSize": 2,
+  "translateTabsToSpaces": true,
+  "folders":
+  [
+    {
+      "follow_symlinks": true,
+      "path": "/Users/lawdavis/repos/createTemplate"
+    }
+  ],
+}
