@@ -24,8 +24,13 @@ suite('Basic template', function() {
     result.appendChild(templates.Structure());
   }, options);
 
-  benchmark('innerHTML', function() {
+  benchmark('Handlebars', function() {
     var result = document.getElementById('result');
-    result.innerHTML = __html__['bench/fixtures/Structure.html'];
+    result.innerHTML = hbs_templates.Structure();
   }, options);
+
+  // benchmark('innerHTML', function() {
+  //   var result = document.getElementById('result');
+  //   result.innerHTML = __html__['bench/fixtures/Structure.html'];
+  // }, options);
 });

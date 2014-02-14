@@ -34,8 +34,18 @@ suite('Basic template with variables', function() {
     }));
   }, options);
 
-  benchmark('innerHTML', function() {
+  benchmark('Handlebars', function() {
     var result = document.getElementById('result');
-    result.innerHTML = __html__['bench/fixtures/Person.html'];
+    result.innerHTML = hbs_templates.Person({
+      name: 'Larry',
+      title: 'Software Engineer',
+      description: 'What can I say, I like to code!',
+      email: 'lazdnet@gmail.com'
+    });
   }, options);
+
+  // benchmark('innerHTML', function() {
+  //   var result = document.getElementById('result');
+  //   result.innerHTML = __html__['bench/fixtures/Person.html'];
+  // }, options);
 });

@@ -1,3 +1,5 @@
+var path = require('path');
+
 module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -24,7 +26,9 @@ module.exports = function(grunt) {
         reporters: ['bench'],
         files: [
           'node_modules/perftacular/perftacular-*.js',
+          'bower_components/handlebars/handlebars.runtime.js',
           'build/templates.js',
+          'build/hbs_templates.js',
           'bench/fixtures/*.html',
           'bench/lib/*.js',
           'bench/*.js'
@@ -64,6 +68,19 @@ module.exports = function(grunt) {
         dest: 'build/templates.js',
       }
     },
+    handlebars: {
+      compile: {
+        options: {
+          namespace: 'hbs_templates',
+          processName: function(name) {
+            return path.basename(name, '.html');
+          }
+        },
+        files: {
+          'build/hbs_templates.js': ['bench/fixtures/*.html']
+        }
+      }
+    },
     watch: {
       jshint: {
         files: ['gruntfile.js'],
@@ -85,6 +102,7 @@ module.exports = function(grunt) {
   });
 
   grunt.loadTasks('tasks/');
+  grunt.loadNpmTasks('grunt-contrib-handlebars');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-clean');
