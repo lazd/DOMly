@@ -10,8 +10,9 @@ function getFixture(name) {
   return fs.readFileSync(path.join(__dirname, '..', 'fixtures', name+'.html'), 'utf-8');
 }
 
-function test(fixture, done, obj, data) {
-  var template = compile(getFixture(fixture));
+function test(options) {
+  var fixture = getFixture(options.fixture);
+  var template = compile(fixture, options.options);
   // console.log(template.toString());
 
   jsdom.env({
@@ -20,10 +21,10 @@ function test(fixture, done, obj, data) {
     done: function (errors, window) {
       var document = global.document = window.document;
       var $ = global.$ = window.$;
-      var root = template.call(obj, data);
+      var root = template.call(options.obj, options.data);
       document.body.appendChild(root);
 
-      done($, root, document, window, template);
+      options.done($, fixture, template, root, document, window);
     }
   });
 }

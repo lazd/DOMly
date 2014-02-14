@@ -1,6 +1,7 @@
 var cheerio = require('cheerio');
 
 var variableRE = /\{\{(.*?)\}\}/g;
+var blankRE = /^[\s]*$/;
 
 function getVariableArray(string) {
   var array = [];
@@ -27,6 +28,10 @@ function getVariableArray(string) {
   }
 
   return array;
+}
+
+function isBlank(string) {
+  return !!string.match(blankRE);
 }
 
 function makeVariableExpression(string) {
@@ -100,7 +105,7 @@ function createTextNode(elName, text) {
   return 'var '+elName+' = document.createTextNode('+makeVariableExpression(text)+');\n';
 }
 
-function buildFunctionBody($, el, parentName, count) {
+function buildFunctionBody($, el, options, parentName, count) {
   count = count || 0;
   var func = '';
 
@@ -120,11 +125,12 @@ function buildFunctionBody($, el, parentName, count) {
 
       var children = el.children;
       if (children.length) {
-        func += buildFunctionBody($, el, elName, count);
+        func += buildFunctionBody($, el, options, elName, count);
       }
       else {
         var text = $(el).text();
-        if (text.length) {
+
+        if (!(options.stripWhitespace && isBlank(text)) || text.length) {
           // Set text content directly if there are no children
           func += setTextContent(elName, text);
         }
@@ -132,9 +138,13 @@ function buildFunctionBody($, el, parentName, count) {
     }
     else if (el.type === 'text') {
       var text = $(el).text();
-      if (text.length) {
-        func += createTextNode(elName, text);
+
+      // Don't include blank text nodes
+      if ((options.stripWhitespace && isBlank(text)) || !text.length) {
+        return;
       }
+
+      func += createTextNode(elName, text);
     }
 
     if (parentName) {
@@ -145,12 +155,12 @@ function buildFunctionBody($, el, parentName, count) {
   return func;
 }
 
-function compile(html) {
+function compile(html, options) {
   var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
 
   var root = $('#__template-root__')[0];
 
-  var functionBody = buildFunctionBody($, root);
+  var functionBody = buildFunctionBody($, root, options || {});
 
   if (root.children.length === 1) {
     // Return the root element, if there's only one
