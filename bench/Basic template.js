@@ -29,6 +29,12 @@ suite('Basic template', function() {
     result.innerHTML = hbs_templates.Structure();
   }, options);
 
+  benchmark('doT', function() {
+    var result = document.getElementById('result');
+    result.innerHTML = dot_templates.Structure();
+  }, options);
+
+
   // benchmark('innerHTML', function() {
   //   var result = document.getElementById('result');
   //   result.innerHTML = __html__['bench/fixtures/Structure.html'];

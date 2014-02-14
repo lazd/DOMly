@@ -67,7 +67,6 @@ function safe(string) {
 function createElement(elName, tag, elHandle) {
   var statement = 'var '+elName+' = ';
   var handleUsesDollar;
-  var handleProperty;
   var elHandleBare;
   var handleProperty;
 
@@ -90,7 +89,7 @@ function createElement(elName, tag, elHandle) {
 }
 
 function setAttribute(elName, attr, value) {
-  return elName+'.setAttribute('+safe(attr)+', '+makeVariableExpression(value)+');\n'
+  return elName+'.setAttribute('+safe(attr)+', '+makeVariableExpression(value)+');\n';
 }
 
 function setTextContent(elName, text) {
@@ -108,8 +107,9 @@ function createTextNode(elName, text) {
 function buildFunctionBody($, el, options, parentName, count) {
   count = count || 0;
   var func = '';
+  var text;
 
-  el.children.forEach(function(el, index) {
+  el.children.forEach(function(el) {
     var elName = 'el'+(count++);
     if (el.type === 'tag') {
       func += createElement(elName, el.name, el.attribs['data-handle']);
@@ -128,7 +128,7 @@ function buildFunctionBody($, el, options, parentName, count) {
         func += buildFunctionBody($, el, options, elName, count);
       }
       else {
-        var text = $(el).text();
+        text = $(el).text();
 
         if (!(options.stripWhitespace && isBlank(text)) || text.length) {
           // Set text content directly if there are no children
@@ -137,7 +137,7 @@ function buildFunctionBody($, el, options, parentName, count) {
       }
     }
     else if (el.type === 'text') {
-      var text = $(el).text();
+      text = $(el).text();
 
       // Don't include blank text nodes
       if ((options.stripWhitespace && isBlank(text)) || !text.length) {
