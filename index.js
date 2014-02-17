@@ -116,23 +116,27 @@ function buildFunctionBody($, el, options, parentName) {
 
   el.children.forEach(function(el) {
     var elName = 'el'+(count++);
-    var doAppend = true;
-    var needsClose = false;
     var elseEl;
     if (el.type === 'tag') {
       // Process special tags
       if (el.name === 'if') {
-        // Anything inside of the if should be inserted in the parent
-        elName = parentName;
-        doAppend = false;
-        needsClose = true;
-        func += 'if ('+Object.keys(el.attribs).map(dataWrap).join('&&')+') {\n';
-
         // Find else statement
         elseEl = $(el).children('else');
         if (elseEl.length) {
           $(elseEl).remove();
         }
+
+        func += 'if ('+Object.keys(el.attribs).map(dataWrap).join('&&')+') {\n';
+        func += buildFunctionBody($, el, options, parentName);
+        func += '}\n';
+
+        if (elseEl.length) {
+          func += 'else {\n';
+          func += buildFunctionBody($, elseEl[0], options, parentName);
+          func += '}\n';
+        }
+
+        return;
       }
       else if (el.name === 'else') {
         throw new Error('Found <else> without <if>');
@@ -148,28 +152,18 @@ function buildFunctionBody($, el, options, parentName) {
           }
           func += setAttribute(elName, attr, attrs[attr]);
         }
-      }
 
-      var children = el.children;
-      if (children.length) {
-        func += buildFunctionBody($, el, options, elName);
-      }
-      else {
-        text = $(el).text();
-
-        if (!(options.stripWhitespace && isBlank(text)) || text.length) {
-          // Set text content directly if there are no children
-          func += setTextContent(elName, text);
+        var children = el.children;
+        if (children.length) {
+          func += buildFunctionBody($, el, options, elName);
         }
-      }
+        else {
+          text = $(el).text();
 
-      if (needsClose) {
-        func += '}\n';
-
-        if (elseEl.length) {
-          func += 'else {\n';
-          func += buildFunctionBody($, elseEl[0], options, elName);
-          func += '}\n';
+          if (!(options.stripWhitespace && isBlank(text)) || text.length) {
+            // Set text content directly if there are no children
+            func += setTextContent(elName, text);
+          }
         }
       }
     }
@@ -184,7 +178,7 @@ function buildFunctionBody($, el, options, parentName) {
       func += createTextNode(elName, text);
     }
 
-    if (parentName && doAppend) {
+    if (parentName) {
       func += parentName+'.appendChild('+elName+');\n';
     }
   });
@@ -242,6 +236,10 @@ function compile(html, options) {
   if (root.children.length === 1) {
     // Return the root element, if there's only one
     functionBody += 'return el0;\n';
+  }
+
+  if (debug) {
+    console.log(functionBody);
   }
 
   return new Function('data', functionBody);
