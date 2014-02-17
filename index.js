@@ -134,6 +134,9 @@ function buildFunctionBody($, el, options, parentName) {
           $(elseEl).remove();
         }
       }
+      else if (el.name === 'else') {
+        throw new Error('Found <else> without <if>');
+      }
       else {
         func += createElement(elName, el.name, el.attribs['data-handle']);
 

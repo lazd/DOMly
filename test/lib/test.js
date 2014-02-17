@@ -1,5 +1,6 @@
 var path = require('path');
 var fs = require('fs');
+var expect = require('chai').expect;
 var compile = require('../../index.js');
 var jsdom = require('jsdom');
 var jquery = fs.readFileSync(path.join(__dirname, '..', '..', 'bower_components', 'jquery', 'jquery.js'), 'utf-8');
@@ -12,8 +13,14 @@ function getFixture(name) {
 
 function test(options) {
   var fixture = getFixture(options.fixture);
+
+  if (options.throw) {
+    return expect(function() {
+      compile(fixture, options.options);
+    }).to.Throw(Error);
+  }
+
   var template = compile(fixture, options.options);
-  // console.log(template.toString());
 
   jsdom.env({
     html: html,

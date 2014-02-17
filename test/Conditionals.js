@@ -42,9 +42,23 @@ describe('Conditionals', function() {
     test({
       fixture: 'If-else nested',
       data: { first: false, second: false },
-      done: function($, fixture, template) {
+      done: function($) {
         expect($('p').text()).to.equal('Third option');
       }
+    });
+  });
+
+  it('should throw for when else given without if', function() {
+    test({
+      fixture: 'If-else else without if',
+      throw: true
+    });
+  });
+
+  it('should throw for multiple else on a given if', function() {
+    test({
+      fixture: 'If-else multiple else',
+      throw: true
     });
   });
 });
