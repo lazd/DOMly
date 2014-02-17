@@ -2,7 +2,6 @@ var cheerio = require('cheerio');
 
 var variableRE = /\{\{(.*?)\}\}/g;
 var blankRE = /^[\s]*$/;
-var debug = false;
 var count;
 
 function getVariableArray(string) {
@@ -112,7 +111,7 @@ function createElement(elName, tag, elHandle) {
   if (elHandle) {
     statement += handleProperty+' = ';
   }
-  statement += 'document.createElement("'+tag+'");\n';
+  statement += 'document.createElement('+safe(tag)+');\n';
 
   if (elHandle && handleUsesDollar) {
     statement += 'this['+safe(elHandle)+'] = $('+elName+');\n';
@@ -262,11 +261,16 @@ function prettyPrint(node, spaces) {
 }
 
 function compile(html, options) {
-  var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
+  options = options || {};
 
+  // Load the HTML inside of a root element
+  var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
   var root = $('#__template-root__')[0];
 
-  if (debug) {
+  if (options.debug) {
+    console.log('\nSource file contents:');
+    console.log(html);
+    console.log('\nParsed tree:');
     prettyPrint(root);
   }
 
@@ -274,14 +278,15 @@ function compile(html, options) {
   count = 0;
 
   // Build function body
-  var functionBody = buildFunctionBody($, root, options || {});
+  var functionBody = buildFunctionBody($, root, options);
 
   if (root.children.length === 1) {
     // Return the root element, if there's only one
     functionBody += 'return el0;\n';
   }
 
-  if (debug) {
+  if (options.debug) {
+    console.log('\nCompiled function:');
     console.log(functionBody);
   }
 
