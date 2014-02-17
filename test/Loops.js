@@ -26,4 +26,46 @@ describe('Loops', function() {
       }
     });
   });
+
+  it('should set reference parent data with parent', function() {
+    test({
+      fixture: 'For each with parent reference',
+      data: {
+        name: 'Parent',
+        items: data.items
+      },
+      done: function($) {
+        expect($('li')[0].textContent).to.equal('Parent: Item 1');
+        expect($('li')[1].textContent).to.equal('Parent: Item 2');
+      }
+    });
+  });
+
+  it('should set this to loop context', function() {
+    test({
+      fixture: 'For each loop over array of strings',
+      data: {
+        items: ['Item 1', 'Item 2']
+      },
+      done: function($) {
+        expect($('li')[0].textContent).to.equal('Item 1');
+        expect($('li')[1].textContent).to.equal('Item 2');
+      }
+    });
+  });
+
+  it('should set loop over sets at nested properties', function() {
+    test({
+      fixture: 'For each loop over nested set',
+      data: {
+        item: {
+          tags: [{ tag: 'Tag 1' }, { tag: 'Tag 2' }]
+        }
+      },
+      done: function($) {
+        expect($('li')[0].textContent).to.equal('Tag 1');
+        expect($('li')[1].textContent).to.equal('Tag 2');
+      }
+    });
+  });
 });

@@ -55,7 +55,7 @@ function makeVariableExpression(string) {
     }
     else {
       // Substitute variables
-      expression += 'data['+safe(piece.variable)+']';
+      expression += data(piece.variable);
     }
   });
 
@@ -64,6 +64,37 @@ function makeVariableExpression(string) {
 
 function safe(string) {
   return JSON.stringify(string);
+}
+
+function data(path) {
+  if (path === 'this') {
+    return 'data';
+  }
+
+  if (~path.indexOf('.')) {
+    // Break into pieces
+    var pieces = path.split('.');
+
+    // Make path
+    var expression = 'data';
+    pieces.forEach(function(piece, index) {
+      if (piece === 'this' && index === 0) {
+        // Skip initial this
+        return;
+      }
+      if (piece === 'parent' && index === 0) {
+        // Allow parent references
+        expression = 'parent';
+        return;
+      }
+      expression += '['+safe(piece)+']';
+    });
+
+    return expression;
+  }
+  else {
+    return 'data['+safe(path)+']';
+  }
 }
 
 function createElement(elName, tag, elHandle) {
@@ -106,10 +137,6 @@ function createTextNode(elName, text) {
   return 'var '+elName+' = document.createTextNode('+makeVariableExpression(text)+');\n';
 }
 
-function dataWrap(str) {
-  return 'data['+safe(str)+']';
-}
-
 function buildFunctionBody($, el, options, parentName) {
   var func = '';
   var text;
@@ -127,7 +154,7 @@ function buildFunctionBody($, el, options, parentName) {
           $(elseEl).remove();
         }
 
-        var expression = Object.keys(el.attribs).map(dataWrap).join('&&');
+        var expression = Object.keys(el.attribs).map(data).join('&&');
 
         if (not) {
           express = '!('+expression+')';
@@ -150,7 +177,8 @@ function buildFunctionBody($, el, options, parentName) {
       }
       else if (el.name === 'foreach') {
         // @todo Throw if multiple items provided
-        func += 'data['+safe(Object.keys(el.attribs).join(''))+'].forEach(function(data) {\n';
+        func += 'var parent = data;\n';
+        func += data(Object.keys(el.attribs).join(''))+'.forEach(function(data) {\n';
         func += buildFunctionBody($, el, options, parentName);
         func += '});\n';
 

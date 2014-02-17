@@ -23,4 +23,32 @@ describe('Variables', function() {
       }
     });
   });
+
+  it('should substitute nested variables', function() {
+    test({
+      fixture: 'Nested data',
+      done: function($) {
+        expect($('div').text()).to.equal('First Name');
+      },
+      data: {
+        person: {
+          name: {
+            first: 'First Name'
+          }
+        }
+      }
+    });
+  });
+
+  it('should allow use of this', function() {
+    test({
+      fixture: 'Data with this',
+      done: function($) {
+        expect($('div').text()).to.equal('Name');
+      },
+      data: {
+        name: 'Name'
+      }
+    });
+  });
 });
