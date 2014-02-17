@@ -141,6 +141,14 @@ function buildFunctionBody($, el, options, parentName) {
       else if (el.name === 'else') {
         throw new Error('Found <else> without <if>');
       }
+      else if (el.name === 'foreach') {
+        // @todo Throw if multiple items provided
+        func += 'data['+safe(Object.keys(el.attribs).join(''))+'].forEach(function(data) {\n';
+        func += buildFunctionBody($, el, options, parentName);
+        func += '});\n';
+
+        return;
+      }
       else {
         func += createElement(elName, el.name, el.attribs['data-handle']);
 
