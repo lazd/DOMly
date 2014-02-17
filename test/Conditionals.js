@@ -20,6 +20,24 @@ describe('Conditionals', function() {
     });
   });
 
+  it('should support unless', function() {
+    test({
+      fixture: 'Unless statement',
+      data: { second: true },
+      done: function($) {
+        expect($('p').length).to.equal(2);
+      }
+    });
+
+    test({
+      fixture: 'Unless statement',
+      data: { second: false },
+      done: function($) {
+        expect($('p').length).to.equal(1);
+      }
+    });
+  });
+
   it('should support if-else', function() {
     test({
       fixture: 'If-else statement',

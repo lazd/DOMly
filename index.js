@@ -116,17 +116,24 @@ function buildFunctionBody($, el, options, parentName) {
 
   el.children.forEach(function(el) {
     var elName = 'el'+(count++);
-    var elseEl;
     if (el.type === 'tag') {
       // Process special tags
-      if (el.name === 'if') {
+      if (el.name === 'if' || el.name === 'unless') {
+        var not = (el.name === 'unless');
+
         // Find else statement
-        elseEl = $(el).children('else');
+        var elseEl = $(el).children('else');
         if (elseEl.length) {
           $(elseEl).remove();
         }
 
-        func += 'if ('+Object.keys(el.attribs).map(dataWrap).join('&&')+') {\n';
+        var expression = Object.keys(el.attribs).map(dataWrap).join('&&');
+
+        if (not) {
+          express = '!('+expression+')';
+        }
+
+        func += 'if ('+expression+') {\n';
         func += buildFunctionBody($, el, options, parentName);
         func += '}\n';
 
