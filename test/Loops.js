@@ -91,4 +91,28 @@ describe('Loops', function() {
       }
     });
   });
+
+  it('should support named iterators', function() {
+    test({
+      fixture: 'For each with named iterator',
+      data: {
+        items: [
+          {
+            tags: [ 'Tag 1', 'Tag 2' ]
+          },
+          {
+            tags: [ 'Tag 3', 'Tag 4' ]
+          }
+        ]
+      },
+      done: function($) {
+        expect($('h1')[0].textContent).to.equal('0');
+        expect($('h1')[1].textContent).to.equal('1');
+        expect($('li')[0].textContent).to.equal('0.0');
+        expect($('li')[1].textContent).to.equal('0.1');
+        expect($('li')[2].textContent).to.equal('1.0');
+        expect($('li')[3].textContent).to.equal('1.1');
+      }
+    });
+  });
 });

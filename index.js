@@ -92,6 +92,7 @@ function Compiler(options) {
   this.data = this.data.bind(this);
   this.count = 0;
   this.nestCount = 0;
+  this.iteratorNames = [];
   this.options = options || {};
 }
 
@@ -199,6 +200,13 @@ Compiler.prototype.data = function(path) {
     return 'data_'+this.nestCount;
   }
 
+  // Match named iterators
+  // This overrides property names
+  var iteratorNameIndex = this.iteratorNames.indexOf(path);
+  if (iteratorNameIndex !== -1) {
+    return 'i'+(iteratorNameIndex+1);
+  }
+
   path = path.replace(parentDataRE, '__template_parent_data__.');
 
   if (~path.indexOf('.')) {
@@ -284,9 +292,20 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         throw new Error('Found <else> without <if>');
       }
       else if (el.name === 'foreach') {
-        // Get the iterated object's name
         // @todo Throw if multiple items provided
-        var iterated = this.data(Object.keys(el.attribs).join(''));
+        var attributeKeys = Object.keys(el.attribs);
+        var hasNamedIterator = false;
+        var propName;
+
+        if (attributeKeys.length) {
+          var pair = attributeKeys.join('').split(',');
+          propName = pair[0];
+          this.iteratorNames.push(pair[1]);
+          hasNamedIterator = true;
+        }
+
+        // Get the iterated object's name
+        var iterated = this.data(propName);
 
         // Increment nest count
         var pnc = this.nestCount;
@@ -298,6 +317,10 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         func += 'var data_'+nc+' = '+iteratedVar+'[i'+nc+'];\n';
         func += this.buildFunctionBody(el, parentName);
         func += '}\n';
+
+        if (hasNamedIterator) {
+          this.iteratorNames.pop();
+        }
 
         // Reset nest count
         this.nestCount = pnc;
