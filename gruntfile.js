@@ -56,6 +56,12 @@ module.exports = function(grunt) {
       firefox: {
         browsers: ['Firefox']
       },
+      ios: {
+        browsers: ['iOS']
+      },
+      safari: {
+        browsers: ['Safari']
+      },
       // Watch configuration
       watch: {
         background: true,
@@ -135,9 +141,12 @@ module.exports = function(grunt) {
   grunt.registerTask('build', [ 'jshint', 'compile', 'handlebars', 'dot' ]);
   grunt.registerTask('default', [ 'clean', 'build' ]);
 
-  grunt.registerTask('bench', [ 'build', 'clean:results', 'karma:chrome', 'karma:firefox' ]);
-  grunt.registerTask('bench:chrome', [ 'build', 'clean:results', 'karma:chrome' ]);
-  grunt.registerTask('bench:firefox', [ 'build', 'clean:results', 'karma:firefox' ]);
+  grunt.registerTask('bench', [ 'karma:chrome', 'karma:firefox', 'karma:safari' ]);
+  grunt.registerTask('bench:prepare', [ 'build', 'clean:results' ]);
+  grunt.registerTask('bench:chrome', [ 'bench:prepare', 'karma:chrome' ]);
+  grunt.registerTask('bench:firefox', [ 'bench:prepare', 'karma:firefox' ]);
+  grunt.registerTask('bench:safari', [ 'bench:prepare', 'karma:safari' ]);
+  grunt.registerTask('bench:ios', [ 'bench:prepare', 'karma:ios' ]);
   grunt.registerTask('test', [ 'simplemocha' ]);
   grunt.registerTask('dev', [ 'karma:watch:start', 'watch' ]);
 };
