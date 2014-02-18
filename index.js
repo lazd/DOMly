@@ -271,16 +271,16 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         }
 
         var children = el.children;
-        if (children.length) {
-          func += this.buildFunctionBody(el, elName);
-        }
-        else {
+        if (children.length === 1 && children[0].type === 'text') {
           text = $(el).text();
 
           if (!(this.options.stripWhitespace && isBlank(text)) || text.length) {
-            // Set text content directly if there are no children
+            // Set text content directly if there are no other children
             func += this.setTextContent(elName, text);
           }
+        }
+        else if (children.length) {
+          func += this.buildFunctionBody(el, elName);
         }
       }
     }
