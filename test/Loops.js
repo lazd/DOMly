@@ -41,6 +41,29 @@ describe('Loops', function() {
     });
   });
 
+  it('should set allow reference of parent\'s parent', function() {
+    test({
+      fixture: 'For each with nested parent reference',
+      data: {
+        category: 'Category',
+        items: [
+          { name: 'Item 1', tags: ['Tag 1', 'Tag 2' ]},
+          { name: 'Item 2', tags: ['Tag 3', 'Tag 4' ]}
+        ]
+      },
+      done: function($) {
+        expect($('ol > li > ul > li')[0].textContent).to.equal('Category: Item 1: Tag 1');
+        expect($('ol > li > ul > li')[1].textContent).to.equal('Category: Item 1: Tag 2');
+        expect($('ol > li > ul > li')[2].textContent).to.equal('Category: Item 1: Tag 1');
+        expect($('ol > li > ul > li')[3].textContent).to.equal('Category: Item 1: Tag 2');
+        expect($('ol > li > ul > li')[4].textContent).to.equal('Category: Item 2: Tag 3');
+        expect($('ol > li > ul > li')[5].textContent).to.equal('Category: Item 2: Tag 4');
+        expect($('ol > li > ul > li')[6].textContent).to.equal('Category: Item 2: Tag 3');
+        expect($('ol > li > ul > li')[7].textContent).to.equal('Category: Item 2: Tag 4');
+      }
+    });
+  });
+
   it('should set this to loop context', function() {
     test({
       fixture: 'For each loop over array of strings',

@@ -1,0 +1,19 @@
+<div>
+  <h1>Category: {{category}}</h1>
+  <ol>
+    <foreach items>
+      <li>
+        <h2>{{../category}}: {{name}}</h2>
+        <h3>Tags</h3>
+        <ul>
+          <foreach tags>
+            <li>{{../../category}}: {{../name}}: {{this}}</li>
+          </foreach>
+          <foreach tags>
+            <li>{{../../category}}: {{../name}}: {{this}}</li>
+          </foreach>
+        </ul>
+      </li>
+    </foreach>
+  </ol>
+</div>

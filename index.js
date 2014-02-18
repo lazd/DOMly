@@ -2,7 +2,9 @@ var cheerio = require('cheerio');
 
 var variableRE = /\{\{(.*?)\}\}/g;
 var blankRE = /^[\s]*$/;
+var parentDataRE = /\.\.\//g;
 var count;
+var nestCount;
 
 function getVariableArray(string) {
   var array = [];
@@ -70,24 +72,41 @@ function data(path) {
     return 'data';
   }
 
+  path = path.replace(parentDataRE, '__template_parent_data__.');
+
   if (~path.indexOf('.')) {
     // Break into pieces
     var pieces = path.split('.');
 
     // Make path
-    var expression = 'data';
-    pieces.forEach(function(piece, index) {
-      if (piece === 'this' && index === 0) {
-        // Skip initial this
-        return;
+    var expression;
+    var i = 0;
+    var piece;
+
+    if (pieces[0] === '__template_parent_data__') {
+      // Resolve variable name
+      for (; i < pieces.length; i++) {
+        if (pieces[i] !== '__template_parent_data__') {
+          break;
+        }
       }
-      if (piece === 'parent' && index === 0) {
-        // Allow parent references
-        expression = 'parent';
-        return;
+
+      // Calculate correct variable name
+      var parentNum = nestCount - i;
+      expression = 'data_'+parentNum;
+    }
+    else {
+      expression = 'data';
+    }
+
+    for (; i < pieces.length; i++) {
+      piece = pieces[i];
+      if (piece === 'this' && i === 0) {
+        // Skip initial this
+        continue;
       }
       expression += '['+safe(piece)+']';
-    });
+    }
 
     return expression;
   }
@@ -175,11 +194,17 @@ function buildFunctionBody($, el, options, parentName) {
         throw new Error('Found <else> without <if>');
       }
       else if (el.name === 'foreach') {
+        // Increment nest count
+        var curNestCount = nestCount++;
+
         // @todo Throw if multiple items provided
-        func += 'var parent = data;\n';
+        func += 'var data_'+(curNestCount)+' = data;\n';
         func += data(Object.keys(el.attribs).join(''))+'.forEach(function(data) {\n';
         func += buildFunctionBody($, el, options, parentName);
         func += '});\n';
+
+        // Reset nest count
+        nestCount = curNestCount;
 
         return;
       }
@@ -264,8 +289,8 @@ function compile(html, options) {
   options = options || {};
 
   // Load the HTML inside of a root element
-  var $ = cheerio.load('<div id="__template-root__">'+html+'</div>');
-  var root = $('#__template-root__')[0];
+  var $ = cheerio.load('<div id="__template_root__">'+html+'</div>');
+  var root = $('#__template_root__')[0];
 
   if (options.debug) {
     console.log('\nSource file contents:');
@@ -276,6 +301,7 @@ function compile(html, options) {
 
   // Reset count
   count = 0;
+  nestCount = 0;
 
   // Build function body
   var functionBody = buildFunctionBody($, root, options);

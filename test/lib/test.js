@@ -31,6 +31,11 @@ function test(options) {
       var root = template.call(options.obj, options.data);
       document.body.appendChild(root);
 
+      if (options.options && options.options.debug) {
+        console.log('Output HTML:');
+        console.log(document.body.innerHTML);
+      }
+
       options.done($, fixture, template, root, document, window);
     }
   });
