@@ -76,7 +76,8 @@ module.exports = function(grunt) {
     },
     compile: {
       options: {
-        namespace: 'templates'
+        namespace: 'templates',
+        stripWhitespace: true
       },
       templates: {
         src: 'bench/fixtures/*.html',

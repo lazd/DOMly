@@ -21,7 +21,7 @@ module.exports = function(grunt) {
         var contents = grunt.file.read(filepath);
 
         // Compile
-        var template = compile(contents);
+        var template = compile(contents, options);
 
         var name = path.basename(filepath, '.html');
 
