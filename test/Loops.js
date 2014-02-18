@@ -64,6 +64,35 @@ describe('Loops', function() {
     });
   });
 
+  it('should support conditionals against parent value', function() {
+    var items = [
+      { name: 'Item 1' },
+      { name: 'Item 2' }
+    ];
+
+    test({
+      fixture: 'For each with nested parent conditional',
+      data: {
+        showItems: false,
+        items: items
+      },
+      done: function($) {
+        expect($('li').length).to.equal(0);
+      }
+    });
+
+    test({
+      fixture: 'For each with nested parent conditional',
+      data: {
+        showItems: true,
+        items: items
+      },
+      done: function($) {
+        expect($('li').length).to.equal(2);
+      }
+    });
+  });
+
   it('should set this to loop context', function() {
     test({
       fixture: 'For each loop over array of strings',

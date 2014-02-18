@@ -3,8 +3,38 @@ var cheerio = require('cheerio');
 var variableRE = /\{\{(.*?)\}\}/g;
 var blankRE = /^[\s]*$/;
 var parentDataRE = /\.\.\//g;
-var count;
-var nestCount;
+
+function indent(spaces) {
+  return (new Array(spaces)).join('\t');
+}
+
+function prettyPrint(node, spaces) {
+  var isFirst = spaces === undefined;
+
+  spaces = spaces || 0;
+
+  var name = node.type === 'tag' ? node.name : 'text';
+  var desc = '';
+
+  if (node.type === 'text') {
+    desc = node.data;
+  }
+  else {
+    for (var attr in node.attribs) {
+      desc += attr+'='+node.attribs[attr]+' ';
+    }
+  }
+
+  if (!isFirst) {
+    console.log(indent(spaces), name, desc);
+  }
+
+  if (node.children) {
+    node.children.forEach(function(child) {
+      prettyPrint(child, spaces+1);
+    });
+  }
+}
 
 function getVariableArray(string) {
   var array = [];
@@ -37,16 +67,69 @@ function isBlank(string) {
   return !!string.match(blankRE);
 }
 
-function makeVariableExpression(string) {
+function safe(string) {
+  return JSON.stringify(string);
+}
+
+function usesVariables(string) {
+  return string.match(variableRE);
+}
+
+function Compiler(options) {
+  this.data = this.data.bind(this);
+  this.count = 0;
+  this.nestCount = 0;
+  this.options = options || {};
+}
+
+Compiler.prototype.createElement = function(elName, tag, elHandle) {
+  var statement = 'var '+elName+' = ';
+  var handleUsesDollar;
+  var elHandleBare;
+  var handleProperty;
+
+  if (elHandle) {
+    handleUsesDollar = elHandle.charAt(0) === '$';
+    elHandleBare = handleUsesDollar ? elHandle.slice(1) : elHandle;
+    handleProperty = 'this['+safe(elHandleBare)+']';
+  }
+
+  if (elHandle) {
+    statement += handleProperty+' = ';
+  }
+  statement += 'document.createElement('+safe(tag)+');\n';
+
+  if (elHandle && handleUsesDollar) {
+    statement += 'this['+safe(elHandle)+'] = $('+elName+');\n';
+  }
+
+  return statement;
+};
+
+Compiler.prototype.setAttribute = function(elName, attr, value) {
+  return elName+'.setAttribute('+safe(attr)+', '+this.makeVariableExpression(value)+');\n';
+};
+
+Compiler.prototype.setTextContent = function(elName, text) {
+  return elName+'.textContent = '+this.makeVariableExpression(text)+';\n';
+};
+
+Compiler.prototype.createTextNode = function(elName, text) {
+  return 'var '+elName+' = document.createTextNode('+this.makeVariableExpression(text)+');\n';
+};
+
+Compiler.prototype.makeVariableExpression = function(string) {
   if (!usesVariables(string)) {
     return safe(string);
   }
 
   var expression = '';
   var pieces = getVariableArray(string);
-  pieces.forEach(function(piece, index) {
+  for (var i = 0; i < pieces.length; i++) {
+    var piece = pieces[i];
+
     // Concat pieces together
-    if (index !== 0) {
+    if (i !== 0) {
       expression += '+';
     }
 
@@ -56,18 +139,14 @@ function makeVariableExpression(string) {
     }
     else {
       // Substitute variables
-      expression += data(piece.variable);
+      expression += this.data(piece.variable);
     }
-  });
+  }
 
   return expression;
-}
+};
 
-function safe(string) {
-  return JSON.stringify(string);
-}
-
-function data(path) {
+Compiler.prototype.data = function(path) {
   if (path === 'this') {
     return 'data';
   }
@@ -92,7 +171,7 @@ function data(path) {
       }
 
       // Calculate correct variable name
-      var parentNum = nestCount - i;
+      var parentNum = this.nestCount - i;
       expression = 'data_'+parentNum;
     }
     else {
@@ -113,54 +192,17 @@ function data(path) {
   else {
     return 'data['+safe(path)+']';
   }
-}
+};
 
-function createElement(elName, tag, elHandle) {
-  var statement = 'var '+elName+' = ';
-  var handleUsesDollar;
-  var elHandleBare;
-  var handleProperty;
-
-  if (elHandle) {
-    handleUsesDollar = elHandle.charAt(0) === '$';
-    elHandleBare = handleUsesDollar ? elHandle.slice(1) : elHandle;
-    handleProperty = 'this['+safe(elHandleBare)+']';
-  }
-
-  if (elHandle) {
-    statement += handleProperty+' = ';
-  }
-  statement += 'document.createElement('+safe(tag)+');\n';
-
-  if (elHandle && handleUsesDollar) {
-    statement += 'this['+safe(elHandle)+'] = $('+elName+');\n';
-  }
-
-  return statement;
-}
-
-function setAttribute(elName, attr, value) {
-  return elName+'.setAttribute('+safe(attr)+', '+makeVariableExpression(value)+');\n';
-}
-
-function setTextContent(elName, text) {
-  return elName+'.textContent = '+makeVariableExpression(text)+';\n';
-}
-
-function usesVariables(string) {
-  return string.match(variableRE);
-}
-
-function createTextNode(elName, text) {
-  return 'var '+elName+' = document.createTextNode('+makeVariableExpression(text)+');\n';
-}
-
-function buildFunctionBody($, el, options, parentName) {
+Compiler.prototype.buildFunctionBody = function(root, parentName) {
   var func = '';
   var text;
+  var $ = this.$;
 
-  el.children.forEach(function(el) {
-    var elName = 'el'+(count++);
+  for (var i = 0; i < root.children.length; i++) {
+    var el = root.children[i];
+    var elName = 'el'+(this.count++);
+
     if (el.type === 'tag') {
       // Process special tags
       if (el.name === 'if' || el.name === 'unless') {
@@ -172,44 +214,46 @@ function buildFunctionBody($, el, options, parentName) {
           $(elseEl).remove();
         }
 
-        var expression = Object.keys(el.attribs).map(data).join('&&');
+        // Forward slash is an attribute delimiter
+        // Join on / to re-add slashes from ../
+        var expression = this.data(Object.keys(el.attribs).join('/'));
 
         if (not) {
           express = '!('+expression+')';
         }
 
         func += 'if ('+expression+') {\n';
-        func += buildFunctionBody($, el, options, parentName);
+        func += this.buildFunctionBody(el, parentName);
         func += '}\n';
 
         if (elseEl.length) {
           func += 'else {\n';
-          func += buildFunctionBody($, elseEl[0], options, parentName);
+          func += this.buildFunctionBody(elseEl[0], parentName);
           func += '}\n';
         }
 
-        return;
+        continue;
       }
       else if (el.name === 'else') {
         throw new Error('Found <else> without <if>');
       }
       else if (el.name === 'foreach') {
         // Increment nest count
-        var curNestCount = nestCount++;
+        var curNestCount = this.nestCount++;
 
         // @todo Throw if multiple items provided
         func += 'var data_'+(curNestCount)+' = data;\n';
-        func += data(Object.keys(el.attribs).join(''))+'.forEach(function(data) {\n';
-        func += buildFunctionBody($, el, options, parentName);
+        func += this.data(Object.keys(el.attribs).join(''))+'.forEach(function(data) {\n';
+        func += this.buildFunctionBody(el, parentName);
         func += '});\n';
 
         // Reset nest count
-        nestCount = curNestCount;
+        this.nestCount = curNestCount;
 
-        return;
+        continue;
       }
       else {
-        func += createElement(elName, el.name, el.attribs['data-handle']);
+        func += this.createElement(elName, el.name, el.attribs['data-handle']);
 
         var attrs = el.attribs;
         for (var attr in attrs) {
@@ -217,19 +261,19 @@ function buildFunctionBody($, el, options, parentName) {
           if (attr === 'data-handle') {
             continue;
           }
-          func += setAttribute(elName, attr, attrs[attr]);
+          func += this.setAttribute(elName, attr, attrs[attr]);
         }
 
         var children = el.children;
         if (children.length) {
-          func += buildFunctionBody($, el, options, elName);
+          func += this.buildFunctionBody(el, elName);
         }
         else {
           text = $(el).text();
 
-          if (!(options.stripWhitespace && isBlank(text)) || text.length) {
+          if (!(this.options.stripWhitespace && isBlank(text)) || text.length) {
             // Set text content directly if there are no children
-            func += setTextContent(elName, text);
+            func += this.setTextContent(elName, text);
           }
         }
       }
@@ -238,61 +282,29 @@ function buildFunctionBody($, el, options, parentName) {
       text = $(el).text();
 
       // Don't include blank text nodes
-      if ((options.stripWhitespace && isBlank(text)) || !text.length) {
-        return;
+      if ((this.options.stripWhitespace && isBlank(text)) || !text.length) {
+        continue;
       }
 
-      func += createTextNode(elName, text);
+      func += this.createTextNode(elName, text);
     }
 
     if (parentName) {
       func += parentName+'.appendChild('+elName+');\n';
     }
-  });
+  }
 
   return func;
-}
+};
 
-function indent(spaces) {
-  return (new Array(spaces)).join('\t');
-}
-
-function prettyPrint(node, spaces) {
-  var isFirst = spaces === undefined;
-
-  spaces = spaces || 0;
-
-  var name = node.type === 'tag' ? node.name : 'text';
-  var desc = '';
-
-  if (node.type === 'text') {
-    desc = node.data;
-  }
-  else {
-    for (var attr in node.attribs) {
-      desc += attr+'='+node.attribs[attr]+' ';
-    }
-  }
-
-  if (!isFirst) {
-    console.log(indent(spaces), name, desc);
-  }
-
-  if (node.children) {
-    node.children.forEach(function(child) {
-      prettyPrint(child, spaces+1);
-    })
-  }
-}
-
-function compile(html, options) {
-  options = options || {};
-
+Compiler.prototype.compile = function compile(html) {
   // Load the HTML inside of a root element
-  var $ = cheerio.load('<div id="__template_root__">'+html+'</div>');
+  var $ = this.$ = cheerio.load('<div id="__template_root__">'+html+'</div>', {
+    lowerCaseAttributeNames: false
+  });
   var root = $('#__template_root__')[0];
 
-  if (options.debug) {
+  if (this.options.debug) {
     console.log('\nSource file contents:');
     console.log(html);
     console.log('\nParsed tree:');
@@ -300,23 +312,26 @@ function compile(html, options) {
   }
 
   // Reset count
-  count = 0;
-  nestCount = 0;
+  this.count = 0;
+  this.nestCount = 0;
 
   // Build function body
-  var functionBody = buildFunctionBody($, root, options);
+  var functionBody = this.buildFunctionBody(root);
 
   if (root.children.length === 1) {
     // Return the root element, if there's only one
     functionBody += 'return el0;\n';
   }
 
-  if (options.debug) {
+  if (this.options.debug) {
     console.log('\nCompiled function:');
     console.log(functionBody);
   }
 
   return new Function('data', functionBody);
-}
+};
 
-module.exports = compile;
+module.exports = function(html, options) {
+  var compiler = new Compiler(options);
+  return compiler.compile(html);
+};
