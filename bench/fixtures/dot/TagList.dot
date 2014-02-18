@@ -1,0 +1,8 @@
+<section>
+  <h1>{{= name}}</h1>
+  <ul>
+    {{~it.tags :tag:index}}
+      <li>{{= tag}}</li>
+    {{~}}
+  </ul>
+</section>

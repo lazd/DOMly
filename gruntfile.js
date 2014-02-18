@@ -96,11 +96,11 @@ module.exports = function(grunt) {
       options: {
         namespace: 'hbs_templates',
         processName: function(name) {
-          return path.basename(name, '.html');
+          return path.basename(name, '.hbs');
         }
       },
       templates: {
-        src: 'bench/fixtures/*.html',
+        src: 'bench/fixtures/hbs/*.hbs',
         dest: 'build/hbs_templates.js'
       }
     },

@@ -17,7 +17,7 @@
 //   }, options);
 // });
 
-suite('Basic template with variables', function() {
+suite('Variables', function() {
   var options = setup();
 
   benchmark('ct', function() {
@@ -53,9 +53,4 @@ suite('Basic template with variables', function() {
       email: 'lazdnet@gmail.com'
     });
   }, options);
-
-  // benchmark('innerHTML', function() {
-  //   var result = document.getElementById('result');
-  //   result.innerHTML = __html__['bench/fixtures/Person.html'];
-  // }, options);
 });
