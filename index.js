@@ -148,7 +148,7 @@ Compiler.prototype.makeVariableExpression = function(string) {
 
 Compiler.prototype.data = function(path) {
   if (path === 'this') {
-    return 'data';
+    return 'data_'+this.nestCount;
   }
 
   path = path.replace(parentDataRE, '__template_parent_data__.');
@@ -175,7 +175,7 @@ Compiler.prototype.data = function(path) {
       expression = 'data_'+parentNum;
     }
     else {
-      expression = 'data';
+      expression = 'data_'+this.nestCount;
     }
 
     for (; i < pieces.length; i++) {
@@ -190,7 +190,7 @@ Compiler.prototype.data = function(path) {
     return expression;
   }
   else {
-    return 'data['+safe(path)+']';
+    return 'data_'+this.nestCount+'['+safe(path)+']';
   }
 };
 
@@ -238,17 +238,23 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         throw new Error('Found <else> without <if>');
       }
       else if (el.name === 'foreach') {
-        // Increment nest count
-        var curNestCount = this.nestCount++;
-
+        // Get the iterated object's name
         // @todo Throw if multiple items provided
-        func += 'var data_'+(curNestCount)+' = data;\n';
-        func += this.data(Object.keys(el.attribs).join(''))+'.forEach(function(data) {\n';
+        var iterated = this.data(Object.keys(el.attribs).join(''));
+
+        // Increment nest count
+        var pnc = this.nestCount;
+        var nc = ++this.nestCount;
+        var iteratedVar = 'iterated_'+nc;
+
+        func += 'var '+iteratedVar+' = '+iterated+';\n';
+        func += 'for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {\n';
+        func += 'var data_'+nc+' = '+iteratedVar+'[i'+nc+'];\n';
         func += this.buildFunctionBody(el, parentName);
-        func += '});\n';
+        func += '}\n';
 
         // Reset nest count
-        this.nestCount = curNestCount;
+        this.nestCount = pnc;
 
         continue;
       }
@@ -328,7 +334,7 @@ Compiler.prototype.compile = function compile(html) {
     console.log(functionBody);
   }
 
-  return new Function('data', functionBody);
+  return new Function('data_0', functionBody);
 };
 
 module.exports = function(html, options) {
