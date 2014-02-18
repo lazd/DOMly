@@ -141,8 +141,8 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
       lowerCaseAttributeNames: false
     });
     var newElement = $('div')[0];
-    for (var attr in newElement.attribs) {
-      attrs.push({ attr: attr, value: newElement.attribs[attr] });
+    for (var newAttr in newElement.attribs) {
+      attrs.push({ attr: newAttr, value: newElement.attribs[newAttr] });
     }
   }
   else {
@@ -150,7 +150,7 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
   }
 
   for (var i = 0; i < attrs.length; i++) {
-    func += elName+'.setAttribute('+safe(attrs[i].attr)+', '+this.makeVariableExpression(attrs[i].value)+');\n'
+    func += elName+'.setAttribute('+safe(attrs[i].attr)+', '+this.makeVariableExpression(attrs[i].value)+');\n';
   }
 
   if (conditionalAttrMatch) {
