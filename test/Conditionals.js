@@ -79,4 +79,59 @@ describe('Conditionals', function() {
       throw: true
     });
   });
+
+  it('should set attributes conditionally', function() {
+    var items = ['Item 1', 'Item 2'];
+
+    test({
+      fixture: 'Conditional attributes',
+      data: { disabled: true, items: items },
+      done: function($) {
+        expect($('button#disabled').is(':disabled')).to.be.true;
+        expect($('button#disabledWithClass').hasClass('disabledButton')).to.be.true;
+        expect($('li').hasClass('disabledItem')).to.be.true;
+        expect($('a').hasClass('enabledLink')).to.be.false;
+      }
+    });
+
+    test({
+      fixture: 'Conditional attributes',
+      data: { disabled: false, items: items },
+      done: function($) {
+        expect($('button#disabled').is(':disabled')).to.be.false;
+        expect($('button#disabledWithClass').hasClass('disabledButton')).to.be.false;
+        expect($('li').hasClass('disabledItem')).to.be.false;
+        expect($('a').hasClass('enabledLink')).to.be.true;
+      }
+    });
+  });
+
+  it('should support conditionals against parent value', function() {
+    var items = [
+      { name: 'Item 1' },
+      { name: 'Item 2' }
+    ];
+
+    test({
+      fixture: 'For each with nested parent conditional',
+      data: {
+        showItems: false,
+        items: items
+      },
+      done: function($) {
+        expect($('li').length).to.equal(0);
+      }
+    });
+
+    test({
+      fixture: 'For each with nested parent conditional',
+      data: {
+        showItems: true,
+        items: items
+      },
+      done: function($) {
+        expect($('li').length).to.equal(2);
+      }
+    });
+  });
 });

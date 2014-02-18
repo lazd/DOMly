@@ -3,14 +3,14 @@
   <ol>
     <foreach items>
       <li>
-        <h2>{{../category}}: {{name}}</h2>
+        <h2>{{parent.category}}: {{name}}</h2>
         <h3>Tags</h3>
         <ul>
           <foreach tags>
-            <li>{{../../category}}: {{../name}}: {{this}}</li>
+            <li>{{parent.parent.category}}: {{parent.name}}: {{this}}</li>
           </foreach>
           <foreach tags>
-            <li>{{../../category}}: {{../name}}: {{this}}</li>
+            <li>{{parent.parent.category}}: {{parent.name}}: {{this}}</li>
           </foreach>
         </ul>
       </li>

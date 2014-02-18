@@ -3,7 +3,7 @@ var inlineElements = require('./lib/elements-inline.js');
 
 var variableRE = /\{\{(.*?)\}\}/g;
 var blankRE = /^[\s]*$/;
-var parentDataRE = /\.\.\//g;
+var parentDataRE = /parent\./g;
 
 function indent(spaces) {
   return (new Array(spaces)).join('\t');
@@ -119,8 +119,43 @@ Compiler.prototype.createElement = function(elName, tag, elHandle) {
   return statement;
 };
 
+var conditionalAttrRE = /(if-|unless-)(.+)/;
+
 Compiler.prototype.setAttribute = function(elName, attr, value) {
-  return elName+'.setAttribute('+safe(attr)+', '+this.makeVariableExpression(value)+');\n';
+  var func = '';
+  var attrs = [];
+  var conditionalAttrMatch = attr.match(conditionalAttrRE);
+  if (conditionalAttrMatch) {
+    var conditional = conditionalAttrMatch[1].slice(0, -1);
+    var expression = this.data(conditionalAttrMatch[2]);
+
+    if (conditional === 'unless') {
+      expression = '!('+expression+')';
+    }
+    func += 'if ('+expression+') {\n';
+
+    // Create a new HTML element
+    // Load the HTML inside of a root element
+    var $ = this.$ = cheerio.load('<div '+value+'>', {
+      lowerCaseAttributeNames: false
+    });
+    var newElement = $('div')[0];
+    for (var attr in newElement.attribs) {
+      attrs.push({ attr: attr, value: newElement.attribs[attr] });
+    }
+  }
+  else {
+    attrs.push({ attr: attr, value: value});
+  }
+
+  for (var i = 0; i < attrs.length; i++) {
+    func += elName+'.setAttribute('+safe(attrs[i].attr)+', '+this.makeVariableExpression(attrs[i].value)+');\n'
+  }
+
+  if (conditionalAttrMatch) {
+    func += '}\n';
+  }
+  return func;
 };
 
 Compiler.prototype.setTextContent = function(elName, text) {
@@ -227,9 +262,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
           $(elseEl).remove();
         }
 
-        // Forward slash is an attribute delimiter
-        // Join on / to re-add slashes from ../
-        var expression = this.data(Object.keys(el.attribs).join('/'));
+        var expression = this.data(Object.keys(el.attribs).join(' '));
 
         if (not) {
           express = '!('+expression+')';
@@ -280,6 +313,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
           if (attr === 'data-handle') {
             continue;
           }
+
           func += this.setAttribute(elName, attr, attrs[attr]);
         }
 
