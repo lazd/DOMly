@@ -1,4 +1,5 @@
 var cheerio = require('cheerio');
+var inlineElements = require('./lib/elements-inline.js');
 
 var variableRE = /\{\{(.*?)\}\}/g;
 var blankRE = /^[\s]*$/;
@@ -61,6 +62,18 @@ function getVariableArray(string) {
   }
 
   return array;
+}
+
+function isInline(el) {
+  if (!el) {
+    return false;
+  }
+
+  if (el.type === 'text') {
+    return true;
+  }
+
+  return inlineElements.indexOf(el.name) !== -1;
 }
 
 function isBlank(string) {
@@ -289,7 +302,14 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
       // Don't include blank text nodes
       if ((this.options.stripWhitespace && isBlank(text)) || !text.length) {
-        continue;
+        if (!isInline(el.prev) && !isInline(el.next)) {
+          continue;
+        }
+
+        // When in stripWhitespace mode, use a single space if text is blank
+        if (isBlank(text)) {
+          text = ' ';
+        }
       }
 
       func += this.createTextNode(elName, text);

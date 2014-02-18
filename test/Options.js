@@ -19,7 +19,19 @@ describe('Options', function() {
       test({
         fixture: 'Paragraph with whitespace',
         done: function($) {
-          expect($('body').html()).to.equal('<div><p>This <em>sentence</em> contains<strong> necessary </strong>whitespace that should not be stripped. </p><p>However, the line breaks <span>between elements</span><span>will be blown away</span></p></div>');
+          expect($('body').html()).to.equal('<div><p>Whitespace in individual text nodes <em>should</em> never<strong> be </strong>stripped. </p><p>Space <span>between inline elements</span> <span>should never be stripped.</span></p><p>However, space between block elements should be.</p></div>');
+        },
+        options: {
+          stripWhitespace: true
+        }
+      });
+    });
+
+    it('should not strip whitespace from pre tags', function() {
+      test({
+        fixture: 'Preformatted text',
+        done: function($) {
+          expect($('body').html()).to.equal('<pre>\nThis   is   preformated   text.\nIt   should   remain   unmolested.\n</pre>');
         },
         options: {
           stripWhitespace: true
