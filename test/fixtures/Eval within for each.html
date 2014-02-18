@@ -1,0 +1,16 @@
+<div>
+  <js>
+    if (!Array.isArray(data.items)) {
+      throw new Error('data was not set correctly in root');
+    }
+    data.items.push('Item 3');
+  </js>
+  <foreach items,index>
+    <js>
+      if (typeof data !== 'string') {
+        throw new Error('data was not set correctly in foreach');
+      }
+    </js>
+    <strong>{{index}}: {{this}}</strong>
+  </foreach>
+</div>

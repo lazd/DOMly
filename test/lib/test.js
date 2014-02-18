@@ -12,6 +12,15 @@ function getFixture(name) {
 }
 
 function test(options) {
+  if (!options.options) {
+    options.options = {};
+  }
+
+  // Shortcut to enable debugging
+  if (options.debug) {
+    options.options.debug = true;
+  }
+
   var fixture = getFixture(options.fixture);
 
   if (options.throw) {
@@ -31,7 +40,7 @@ function test(options) {
       var root = template.call(options.obj, options.data);
       document.body.appendChild(root);
 
-      if (options.options && options.options.debug) {
+      if (options.options.debug) {
         console.log('Output HTML:');
         console.log(document.body.innerHTML);
       }

@@ -261,7 +261,15 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
     if (el.type === 'tag') {
       // Process special tags
-      if (el.name === 'if' || el.name === 'unless') {
+      if (el.name === 'js') {
+        // Add literaly JavaScript
+        func += $(el).text()+'\n';
+
+        // Reset data
+        func += 'data_'+this.nestCount+' = data;\n';
+        continue;
+      }
+      else if (el.name === 'if' || el.name === 'unless') {
         var not = (el.name === 'unless');
 
         // Find else statement
@@ -314,7 +322,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
         func += 'var '+iteratedVar+' = '+iterated+';\n';
         func += 'for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {\n';
-        func += 'var data_'+nc+' = '+iteratedVar+'[i'+nc+'];\n';
+        func += 'var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];\n';
         func += this.buildFunctionBody(el, parentName);
         func += '}\n';
 
@@ -400,6 +408,11 @@ Compiler.prototype.compile = function compile(html) {
 
   // Build function body
   var functionBody = this.buildFunctionBody(root);
+
+  // Tack a data declaration on so eval can use it and make sure data is defined
+  if (html.match(/<js>/)) {
+    functionBody = 'var data = data_0 = typeof data_0 === "undefined" ? {} : data_0;\n'+functionBody;
+  }
 
   if (root.children.length === 1) {
     // Return the root element, if there's only one
