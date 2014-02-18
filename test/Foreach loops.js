@@ -1,7 +1,7 @@
 var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
-describe('Loops', function() {
+describe('Foreach loops', function() {
   var data = {
     items: [{ name: 'Item 1' }, { name: 'Item 2' }]
   };

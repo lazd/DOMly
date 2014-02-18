@@ -299,9 +299,13 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
       else if (el.name === 'else') {
         throw new Error('Found <else> without <if>');
       }
-      else if (el.name === 'foreach') {
-        // @todo Throw if multiple items provided
+      else if (el.name === 'foreach' || el.name === 'forin') {
         var attributeKeys = Object.keys(el.attribs);
+        if (attributeKeys.length > 1) {
+          throw new Error('Invalid arguments for '+el.name+' loop');
+        }
+
+        var isArray = el.name === 'foreach';
         var hasNamedIterator = false;
         var propName;
 
@@ -321,7 +325,12 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         var iteratedVar = 'iterated_'+nc;
 
         func += 'var '+iteratedVar+' = '+iterated+';\n';
-        func += 'for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {\n';
+        if (isArray) {
+          func += 'for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {\n';
+        }
+        else {
+          func += 'for (var i'+nc+' in '+iteratedVar+') {\n';
+        }
         func += 'var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];\n';
         func += this.buildFunctionBody(el, parentName);
         func += '}\n';
