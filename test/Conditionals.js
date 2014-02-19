@@ -23,7 +23,7 @@ describe('Conditionals', function() {
   it('should support unless', function() {
     test({
       fixture: 'Unless statement',
-      data: { second: true },
+      data: { second: false },
       done: function($) {
         expect($('p').length).to.equal(2);
       }
@@ -31,7 +31,7 @@ describe('Conditionals', function() {
 
     test({
       fixture: 'Unless statement',
-      data: { second: false },
+      data: { second: true },
       done: function($) {
         expect($('p').length).to.equal(1);
       }

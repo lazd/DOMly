@@ -281,7 +281,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         var expression = this.data(Object.keys(el.attribs).join(' '));
 
         if (not) {
-          express = '!('+expression+')';
+          expression = '!('+expression+')';
         }
 
         func += 'if ('+expression+') {\n';
