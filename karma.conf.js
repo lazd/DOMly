@@ -3,7 +3,7 @@ module.exports = function(config) {
     // base path, that will be used to resolve files and exclude
     basePath: './',
 
-    frameworks: ['mocha', 'chai', 'sinon'],
+    frameworks: ['benchmark'],
 
     // list of files / patterns to load in the browser
     files: [
@@ -18,7 +18,7 @@ module.exports = function(config) {
     // possible values: 'dots', 'progress'
     // CLI --reporters progress
     // reporters: ['progress', 'coverage', 'junit'],
-    reporters: ['bench'],
+    reporters: ['benchmark'],
 
     // web server port
     // CLI --port 9876

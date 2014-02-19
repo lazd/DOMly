@@ -37,9 +37,9 @@ module.exports = function(grunt) {
     karma: {
       options: {
         singleRun: true,
-        reporters: ['bench'],
+        reporters: ['benchmark'],
+        frameworks: ['benchmark'],
         files: [
-          'node_modules/perftacular/perftacular-*.js',
           'bower_components/handlebars/handlebars.runtime.js',
           'build/templates.js',
           'build/hbs_templates.js',
@@ -47,7 +47,6 @@ module.exports = function(grunt) {
           'bench/fixtures/*.html',
           'bench/lib/*.js',
           'bench/*.js'
-          // 'bench/Basic template.js'
         ]
       },
       chrome: {
