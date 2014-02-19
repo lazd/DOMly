@@ -345,12 +345,12 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         continue;
       }
       else {
-        func += this.createElement(elName, el.name, el.attribs['data-handle']);
+        func += this.createElement(elName, el.name, el.attribs.handle);
 
         var attrs = el.attribs;
         for (var attr in attrs) {
           // Skip internal handles
-          if (attr === 'data-handle') {
+          if (attr === 'handle') {
             continue;
           }
 
