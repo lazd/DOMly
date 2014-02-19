@@ -1,9 +1,10 @@
 var cheerio = require('cheerio');
 var inlineElements = require('./lib/elements-inline.js');
 
-var variableRE = /\{\{(.*?)\}\}/g;
+var variableRE = /\{\{\s*(.*?)\s*\}\}/g;
 var blankRE = /^[\s]*$/;
 var parentDataRE = /parent\./g;
+var spaceSplitRE = /\s+/;
 var argSplitRE = /\s*,\s*/;
 
 function indent(spaces) {
@@ -49,8 +50,19 @@ function getVariableArray(string) {
       array.push(text);
     }
 
-    // Add variables
-    array.push({ variable: p1 });
+    if (p1.slice(0,1) === '>') {
+      // Helpers
+      var args = p1.slice(1).split(spaceSplitRE);
+      var helper = args.shift();
+      if (args.length === 0) {
+        args.push('this');
+      }
+      array.push({ helper: helper, args: args });
+    }
+    else {
+      // Add variables
+      array.push({ variable: p1 });
+    }
 
     lastOffset = offset + match.length;
 
@@ -188,8 +200,13 @@ Compiler.prototype.makeVariableExpression = function(string) {
       expression += safe(piece);
     }
     else {
-      // Substitute variables
-      expression += this.data(piece.variable);
+      if (piece.variable) {
+        // Substitute variables
+        expression += this.data(piece.variable);
+      }
+      else if (piece.helper) {
+        expression += piece.helper+'.call(this, '+piece.args.map(this.data).join(', ')+')';
+      }
     }
   }
 
