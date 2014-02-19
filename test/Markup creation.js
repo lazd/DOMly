@@ -38,4 +38,14 @@ describe('Markup creation', function() {
       }
     });
   });
+
+  it('should render multiple root elements', function() {
+    test({
+      fixture: 'Multiple root elements',
+      done: function($) {
+        expect($('div').length).to.equal(1);
+        expect($('p').length).to.equal(1);
+      }
+    });
+  });
 });

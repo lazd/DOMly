@@ -254,6 +254,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
   var func = '';
   var text;
   var $ = this.$;
+  var rootElements = [];
 
   for (var i = 0; i < root.children.length; i++) {
     var el = root.children[i];
@@ -347,6 +348,11 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
       else {
         func += this.createElement(elName, el.name, el.attribs.handle);
 
+        // Store as a root element
+        if (!parentName) {
+          rootElements.push(elName);
+        }
+
         var attrs = el.attribs;
         for (var attr in attrs) {
           // Skip internal handles
@@ -394,6 +400,11 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
     }
   }
 
+  // Return a list of root elements
+  if (!parentName) {
+    func += 'return ['+rootElements.join(',')+'];\n';
+  }
+
   return func;
 };
 
@@ -424,11 +435,6 @@ Compiler.prototype.compile = function compile(html) {
   }
   else {
     functionBody = 'var data;\n'+functionBody;
-  }
-
-  if (root.children.length === 1) {
-    // Return the root element, if there's only one
-    functionBody += 'return el0;\n';
   }
 
   if (this.options.debug) {

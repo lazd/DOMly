@@ -37,8 +37,10 @@ function test(options) {
     done: function (errors, window) {
       var document = global.document = window.document;
       var $ = global.$ = window.$;
-      var root = template.call(options.obj, options.data);
-      document.body.appendChild(root);
+      var rootElements = template.call(options.obj, options.data);
+      rootElements.forEach(function(element) {
+        document.body.appendChild(element);
+      });
 
       if (options.options.debug) {
         console.log('Output HTML:');
