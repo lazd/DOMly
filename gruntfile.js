@@ -146,6 +146,6 @@ module.exports = function(grunt) {
   grunt.registerTask('bench:firefox', [ 'bench:prepare', 'karma:firefox' ]);
   grunt.registerTask('bench:safari', [ 'bench:prepare', 'karma:safari' ]);
   grunt.registerTask('bench:ios', [ 'bench:prepare', 'karma:ios' ]);
-  grunt.registerTask('test', [ 'simplemocha' ]);
+  grunt.registerTask('test', [ 'jshint', 'simplemocha' ]);
   grunt.registerTask('dev', [ 'karma:watch:start', 'watch' ]);
 };
