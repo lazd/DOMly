@@ -7,7 +7,14 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        /* Specified in gruntfile.js */
+      'bower_components/handlebars/handlebars.runtime.js',
+      'bower_components/lodash/dist/lodash.js',
+      'build/templates.js',
+      'build/hbs_templates.js',
+      'build/dot_templates.js',
+      'build/lodash_templates.js',
+      'bench/lib/*.js',
+      'bench/*.js'
     ],
 
     // list of files to exclude
@@ -47,7 +54,6 @@ module.exports = function(config) {
     // - IE (only Windows)
     // CLI --browsers Chrome,Firefox,Safari
     browsers: process.env.TRAVIS ? [ 'Firefox' ] : [
-      'Firefox',
       'Chrome'
     ],
 

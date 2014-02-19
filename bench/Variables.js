@@ -12,7 +12,7 @@ suite('Variables', function() {
       title: 'Software Engineer',
       description: 'What can I say, I like to code!',
       email: 'lazdnet@gmail.com'
-    }));
+    })[0]);
   }, options);
 
   benchmark('Handlebars', function() {

@@ -36,20 +36,7 @@ module.exports = function(grunt) {
     },
     karma: {
       options: {
-        singleRun: true,
-        reporters: ['benchmark'],
-        frameworks: ['benchmark'],
-        files: [
-          'bower_components/handlebars/handlebars.runtime.js',
-          'bower_components/lodash/dist/lodash.js',
-          'build/templates.js',
-          'build/hbs_templates.js',
-          'build/dot_templates.js',
-          'build/lodash_templates.js',
-          'bench/fixtures/*.html',
-          'bench/lib/*.js',
-          'bench/*.js'
-        ]
+        configFile: 'karma.conf.js'
       },
       chrome: {
         browsers: ['Chrome']

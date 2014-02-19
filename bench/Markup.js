@@ -1,17 +1,3 @@
-// suite('Basic template: append', function() {
-//   var options = setup();
-
-//   benchmark('ct', function() {
-//     var result = document.getElementById('result');
-//     result.appendChild(templates.Structure());
-//   }, options);
-
-//   benchmark('innerHTML', function() {
-//     var result = document.getElementById('result');
-//     result.innerHTML += __html__['bench/fixtures/Structure.html'];
-//   }, options);
-// });
-
 suite('Markup', function() {
   var options = setup();
 
@@ -21,7 +7,7 @@ suite('Markup', function() {
       result.removeChild(result.firstChild);
     }
 
-    result.appendChild(templates.Structure());
+    result.appendChild(templates.Structure()[0]);
   }, options);
 
   benchmark('Handlebars', function() {
