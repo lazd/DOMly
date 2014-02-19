@@ -422,6 +422,9 @@ Compiler.prototype.compile = function compile(html) {
   if (html.match(/<js>/)) {
     functionBody = 'var data = data_0 = typeof data_0 === "undefined" ? {} : data_0;\n'+functionBody;
   }
+  else {
+    functionBody = 'var data;\n'+functionBody;
+  }
 
   if (root.children.length === 1) {
     // Return the root element, if there's only one
