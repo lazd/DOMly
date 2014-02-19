@@ -33,4 +33,9 @@ suite('Markup', function() {
     var result = document.getElementById('result');
     result.innerHTML = dot_templates.Structure();
   }, options);
+
+  benchmark('lodash', function() {
+    var result = document.getElementById('result');
+    result.innerHTML = lodash_templates.Structure();
+  }, options);
 });

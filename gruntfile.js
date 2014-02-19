@@ -41,9 +41,11 @@ module.exports = function(grunt) {
         frameworks: ['benchmark'],
         files: [
           'bower_components/handlebars/handlebars.runtime.js',
+          'bower_components/lodash/dist/lodash.js',
           'build/templates.js',
           'build/hbs_templates.js',
           'build/dot_templates.js',
+          'build/lodash_templates.js',
           'bench/fixtures/*.html',
           'bench/lib/*.js',
           'bench/*.js'
@@ -110,6 +112,18 @@ module.exports = function(grunt) {
         dest: 'build/hbs_templates.js'
       }
     },
+    jst: {
+      options: {
+        namespace: 'lodash_templates',
+        processName: function(name) {
+          return path.basename(name, '.html');
+        }
+      },
+      templates: {
+        src: 'bench/fixtures/lodash/*.html',
+        dest: 'build/lodash_templates.js'
+      }
+    },
     watch: {
       jshint: {
         files: ['gruntfile.js'],
@@ -132,12 +146,13 @@ module.exports = function(grunt) {
 
   grunt.loadTasks('tasks/');
   grunt.loadNpmTasks('grunt-contrib-handlebars');
+  grunt.loadNpmTasks('grunt-contrib-jst');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-simple-mocha');
-  grunt.registerTask('build', [ 'jshint', 'compile', 'handlebars', 'dot' ]);
+  grunt.registerTask('build', [ 'jshint', 'compile', 'handlebars', 'dot', 'jst' ]);
   grunt.registerTask('default', [ 'clean', 'build' ]);
 
   grunt.registerTask('bench', [ 'karma:chrome', 'karma:firefox', 'karma:safari' ]);

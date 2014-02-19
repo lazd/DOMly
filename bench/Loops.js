@@ -43,4 +43,9 @@ suite('Loops', function() {
     var result = document.getElementById('result');
     result.innerHTML = dot_templates.TagList(data);
   }, options);
+
+  benchmark('lodash', function() {
+    var result = document.getElementById('result');
+    result.innerHTML = lodash_templates.TagList(data);
+  }, options);
 });
