@@ -4,6 +4,7 @@ var inlineElements = require('./lib/elements-inline.js');
 var variableRE = /\{\{(.*?)\}\}/g;
 var blankRE = /^[\s]*$/;
 var parentDataRE = /parent\./g;
+var argSplitRE = /\s*,\s*/;
 
 function indent(spaces) {
   return (new Array(spaces)).join('\t');
@@ -262,6 +263,32 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
     if (el.type === 'tag') {
       // Process special tags
+      if (el.name === 'partial') {
+        var partialName = el.attribs.name;
+        var args = el.attribs.args;
+
+        // @todo Test this
+        if (!partialName) {
+          throw new Error('Partial name not specified');
+        }
+
+        // Pass current data if no args are defined
+        if (!args) {
+          args = 'this';
+        }
+
+        args = args.split(argSplitRE).map(this.data).join(', ');
+
+        // Call the partial in the current context
+        func += 'var '+elName+' = '+partialName+'.call(this, '+args+');\n';
+
+        // Add the returned elements
+        var iterator = 'i'+elName;
+        func += 'for (var '+iterator+' = 0, n'+iterator+' = '+elName+'.length; '+iterator+' < n'+iterator+'; '+iterator+'++) {\n';
+        func += parentName+'.appendChild('+elName+'['+iterator+']);\n';
+        func += '}\n';
+        continue;
+      }
       if (el.name === 'js') {
         // Add literaly JavaScript
         func += $(el).text()+'\n';
