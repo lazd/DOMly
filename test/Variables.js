@@ -51,4 +51,29 @@ describe('Variables', function() {
       }
     });
   });
+
+  it('should support method invocation', function() {
+    test({
+      fixture: 'Method invocation with variables',
+      done: function($) {
+        expect($('ul').hasClass('result1')).to.be.true;
+        expect($('ul').attr('title')).to.equal('result1');
+        expect($('li')[0].textContent).to.equal('result2');
+        expect($('li')[1].textContent).to.equal('result3');
+      },
+      data: {
+        method1: function() {
+          return 'result1';
+        },
+        method2: function() {
+          return 'result2';
+        },
+        method3: function(arg1,arg2) {
+          return arg1+arg2;
+        },
+        arg1: 'result',
+        arg2: '3'
+      }
+    });
+  });
 });

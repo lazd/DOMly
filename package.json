@@ -32,6 +32,7 @@
     "karma-benchmark-reporter": "~0.1.0",
     "handlebars": "~2.0.0-alpha.1",
     "dot": "~1.0.2",
-    "grunt-contrib-jst": "~0.5.1"
+    "grunt-contrib-jst": "~0.5.1",
+    "sinon": "~1.8.2"
   }
 }

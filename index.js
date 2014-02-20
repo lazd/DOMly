@@ -7,6 +7,7 @@ var parentDataRE = /parent\./g;
 var spaceSplitRE = /\s+/;
 var argSplitRE = /\s*,\s*/;
 var jsTagRE = /<js>/;
+var invocationRE = /(.+)\((.*)\)$/;
 
 function indent(spaces) {
   var space = '';
@@ -150,7 +151,7 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
 
     // Create a new HTML element
     // Load the HTML inside of a root element
-    var $ = this.$ = cheerio.load('<div '+value+'>', {
+    var $ = cheerio.load('<div '+value+'></div>', {
       lowerCaseAttributeNames: false
     });
     var newElement = $('div')[0];
@@ -213,6 +214,10 @@ Compiler.prototype.makeVariableExpression = function(string) {
 };
 
 Compiler.prototype.data = function(path) {
+  if (path === '') {
+    return '';
+  }
+
   if (path === 'this') {
     return 'data_'+this.nestCount;
   }
@@ -257,13 +262,27 @@ Compiler.prototype.data = function(path) {
         // Skip initial this
         continue;
       }
-      expression += '['+safe(piece)+']';
+
+      expression += this.handleInvocationPart(piece);
     }
 
     return expression;
   }
   else {
-    return 'data_'+this.nestCount+'['+safe(path)+']';
+    return 'data_'+this.nestCount+this.handleInvocationPart(path);
+  }
+};
+
+Compiler.prototype.handleInvocationPart = function(piece) {
+  // @todo Replace this hacky bit of code with jison
+  var invocationMatches = piece.match(invocationRE);
+  if (invocationMatches) {
+    var method = invocationMatches[1];
+    var args = invocationMatches[2].split(',').map(this.data).join(',');
+    return '['+safe(method)+']('+args+')';
+  }
+  else {
+    return '['+safe(piece)+']';
   }
 };
 

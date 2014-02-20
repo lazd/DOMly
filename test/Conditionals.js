@@ -1,4 +1,5 @@
 var expect = require('chai').expect;
+var sinon = require('sinon');
 var test = require('./lib/test.js');
 
 describe('Conditionals', function() {
@@ -33,6 +34,46 @@ describe('Conditionals', function() {
       fixture: 'Unless statement',
       data: { second: true },
       done: function($) {
+        expect($('p').length).to.equal(1);
+      }
+    });
+  });
+
+  it('should support if on methods', function() {
+    var spy = sinon.spy();
+    var data = {
+      method: function() {
+        spy();
+        return false;
+      }
+    };
+
+    test({
+      fixture: 'If with method invocation',
+      data: data,
+      done: function($) {
+        expect(spy.called).to.be.true;
+        expect($('p').length).to.equal(0);
+      }
+    });
+  });
+
+  it('should support if on methods with arguments', function() {
+    var spy = sinon.spy();
+    var data = {
+      arg1: true,
+      arg2: true,
+      method: function(arg1, arg2) {
+        spy();
+        return arg1 && arg2;
+      }
+    };
+
+    test({
+      fixture: 'If with method invocation and arguments',
+      data: data,
+      done: function($) {
+        expect(spy.called).to.be.true;
         expect($('p').length).to.equal(1);
       }
     });
@@ -102,6 +143,26 @@ describe('Conditionals', function() {
         expect($('button#disabledWithClass').hasClass('disabledButton')).to.be.false;
         expect($('li').hasClass('disabledItem')).to.be.false;
         expect($('a').hasClass('enabledLink')).to.be.true;
+      }
+    });
+  });
+
+  it('should set attributes conditionally with method invocation', function() {
+    test({
+      fixture: 'Conditional attributes with method invocation',
+      data: { isDisabled: function() { return true; } },
+      done: function($) {
+        expect($('button#disabled').is(':disabled')).to.be.true;
+      }
+    });
+  });
+
+  it('should set attributes conditionally with method invocation and arguments', function() {
+    test({
+      fixture: 'Conditional attributes with method invocation and arguments',
+      data: { isDisabled: function(arg1, arg2) { return arg1 && arg2; }, arg1: true, arg2: true },
+      done: function($) {
+        expect($('button#disabled').is(':disabled')).to.be.true;
       }
     });
   });
