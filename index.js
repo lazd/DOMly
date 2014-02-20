@@ -262,8 +262,7 @@ Compiler.prototype.data = function(path) {
   }
 };
 
-Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) {
-  rootElements = rootElements || [];
+Compiler.prototype.buildFunctionBody = function(root, parentName) {
   var text;
   var $ = this.$;
   var isRoot = this.count === 0;
@@ -296,16 +295,8 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
       args = args.split(argSplitRE).map(this.data).join(', ');
 
       // Call the partial in the current context
-      this.pushStatement('var '+elName+' = '+partialName+'.call(this, '+args+');');
-
-      // Add the returned elements
-      // @todo add support for define,update
-      var iterator = 'i'+elName;
-      this.pushStatement('for (var '+iterator+' = 0, n'+iterator+' = '+elName+'.length; '+iterator+' < n'+iterator+'; '+iterator+'++) {');
-      this.indent++;
-      this.pushStatement(parentName+'.appendChild('+elName+'['+iterator+']);');
-      this.indent--;
-      this.pushStatement('}');
+      // Add the returned document fragment
+      this.pushStatement(parentName+'.appendChild('+partialName+'.call(this, '+args+'));');
     }
     else if (el.name === 'js') {
       // Add literal JavaScript
@@ -332,14 +323,14 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
 
       this.pushStatement('if ('+expression+') {');
       this.indent++;
-      this.buildFunctionBody(el, parentName, rootElements);
+      this.buildFunctionBody(el, parentName);
       this.indent--;
       this.pushStatement('}');
 
       if (elseEl.length) {
         this.pushStatement('else {');
         this.indent++;
-        this.buildFunctionBody(elseEl[0], parentName, rootElements);
+        this.buildFunctionBody(elseEl[0], parentName);
         this.indent--;
         this.pushStatement('}');
       }
@@ -381,7 +372,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
       }
       this.indent++;
       this.pushStatement('var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];');
-      this.buildFunctionBody(el, parentName, rootElements);
+      this.buildFunctionBody(el, parentName);
       this.indent--;
       this.pushStatement('}');
 
@@ -434,7 +425,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
           }
         }
         else if (children.length) {
-          this.buildFunctionBody(el, elName, rootElements);
+          this.buildFunctionBody(el, elName);
         }
       }
 
@@ -443,14 +434,14 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
       }
       else {
         // Store as a root element
-        rootElements.push(elName);
+        this.pushStatement('frag.appendChild('+elName+');');
       }
     }
   }
 
   // Return a list of root elements
   if (isRoot) {
-    this.pushStatement('return ['+rootElements.join(',')+'];');
+    this.pushStatement('return frag;');
   }
 };
 
@@ -479,6 +470,9 @@ Compiler.prototype.compile = function compile(html) {
   this.statements = [];
   this.nestCount = 0;
   this.indent = 1;
+
+  // Create a document fragment to hold the template
+  this.pushStatement('var frag = document.createDocumentFragment();');
 
   // Tack a data declaration on so eval and foreach can use it
   this.pushStatement('var data;');

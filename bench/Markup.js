@@ -7,7 +7,7 @@ suite('Markup', function() {
       result.removeChild(result.firstChild);
     }
 
-    result.appendChild(templates.Structure()[0]);
+    result.appendChild(templates.Structure());
   }, options);
 
   benchmark('Handlebars', function() {

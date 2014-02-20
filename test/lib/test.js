@@ -42,10 +42,8 @@ function test(options) {
 
       var document = global.document = window.document;
       var $ = global.$ = window.$;
-      var rootElements = template.call(options.obj, options.data);
-      rootElements.forEach(function(element) {
-        document.body.appendChild(element);
-      });
+      var frag = template.call(options.obj, options.data);
+      document.body.appendChild(frag);
 
       if (options.options.debug) {
         console.log('Output HTML:');

@@ -7,7 +7,7 @@ suite('Complex', function() {
       result.removeChild(result.firstChild);
     }
 
-    var nodes = templates.Complex({
+    result.appendChild(templates.Complex({
       header: "Colors",
       items: [
         { name: "red", current: true, url: "#Red" },
@@ -15,13 +15,7 @@ suite('Complex', function() {
         { name: "blue", current: false, url: "#Blue" }
       ],
       hasItems: true
-    });
-    while (nodes.length) {
-      var node = nodes.shift();
-      if (node) {
-        result.appendChild(node);
-      }
-    }
+    }));
   }, options);
 
   benchmark('Handlebars', function() {

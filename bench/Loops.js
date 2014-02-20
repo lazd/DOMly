@@ -26,7 +26,7 @@ suite('Loops', function() {
         'Tag 4',
         'Tag 5',
       ]
-    })[0]);
+    }));
   }, options);
 
   benchmark('Handlebars', function() {
