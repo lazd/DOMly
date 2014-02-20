@@ -280,170 +280,168 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
     var el = root.children[i];
     var elName = 'el'+(this.count++);
 
-    if (el.type === 'tag') {
-      // Process special tags
-      if (el.name === 'helper') {
-        var helperName = el.attribs.name;
+    // Process special tags
+    if (el.name === 'helper') {
+      var helperName = el.attribs.name;
 
-        // Call the helper in the current context, passing processed text content
-        func += parentName+'.appendChild(document.createTextNode('+helperName+'.call(this, '+this.makeVariableExpression($(el).text())+')));\n';
+      // Call the helper in the current context, passing processed text content
+      func += parentName+'.appendChild(document.createTextNode('+helperName+'.call(this, '+this.makeVariableExpression($(el).text())+')));\n';
+    }
+    else if (el.name === 'partial') {
+      var partialName = el.attribs.name;
+      var args = el.attribs.args;
+
+      // @todo Test this
+      if (!partialName) {
+        throw new Error('Partial name not specified');
       }
-      else if (el.name === 'partial') {
-        var partialName = el.attribs.name;
-        var args = el.attribs.args;
 
-        // @todo Test this
-        if (!partialName) {
-          throw new Error('Partial name not specified');
-        }
+      // Pass current data if no args are defined
+      if (!args) {
+        args = 'this';
+      }
 
-        // Pass current data if no args are defined
-        if (!args) {
-          args = 'this';
-        }
+      args = args.split(argSplitRE).map(this.data).join(', ');
 
-        args = args.split(argSplitRE).map(this.data).join(', ');
+      // Call the partial in the current context
+      func += 'var '+elName+' = '+partialName+'.call(this, '+args+');\n';
 
-        // Call the partial in the current context
-        func += 'var '+elName+' = '+partialName+'.call(this, '+args+');\n';
+      // Add the returned elements
+      var iterator = 'i'+elName;
+      func += 'for (var '+iterator+' = 0, n'+iterator+' = '+elName+'.length; '+iterator+' < n'+iterator+'; '+iterator+'++) {\n';
+      func += parentName+'.appendChild('+elName+'['+iterator+']);\n';
+      func += '}\n';
+    }
+    else if (el.name === 'js') {
+      // Add literal JavaScript
+      func += $(el).text()+'\n';
 
-        // Add the returned elements
-        var iterator = 'i'+elName;
-        func += 'for (var '+iterator+' = 0, n'+iterator+' = '+elName+'.length; '+iterator+' < n'+iterator+'; '+iterator+'++) {\n';
-        func += parentName+'.appendChild('+elName+'['+iterator+']);\n';
+      // Reset data
+      func += 'data_'+this.nestCount+' = data;\n';
+    }
+    else if (el.name === 'if' || el.name === 'unless') {
+      var not = (el.name === 'unless');
+
+      // Find else statement
+      var elseEl = $(el).children('else');
+      if (elseEl.length) {
+        $(elseEl).remove();
+      }
+
+      var expression = this.data(Object.keys(el.attribs).join(' '));
+
+      if (not) {
+        expression = '!('+expression+')';
+      }
+
+      func += 'if ('+expression+') {\n';
+      func += this.buildFunctionBody(el, parentName, rootElements);
+      func += '}\n';
+
+      if (elseEl.length) {
+        func += 'else {\n';
+        func += this.buildFunctionBody(elseEl[0], parentName, rootElements);
         func += '}\n';
       }
-      else if (el.name === 'js') {
-        // Add literal JavaScript
-        func += $(el).text()+'\n';
-
-        // Reset data
-        func += 'data_'+this.nestCount+' = data;\n';
+    }
+    else if (el.name === 'else') {
+      throw new Error('Found <else> without <if>');
+    }
+    else if (el.name === 'foreach' || el.name === 'forin') {
+      var attributeKeys = Object.keys(el.attribs);
+      if (attributeKeys.length > 1) {
+        throw new Error('Invalid arguments for '+el.name+' loop');
       }
-      else if (el.name === 'if' || el.name === 'unless') {
-        var not = (el.name === 'unless');
 
-        // Find else statement
-        var elseEl = $(el).children('else');
-        if (elseEl.length) {
-          $(elseEl).remove();
-        }
+      var isArray = el.name === 'foreach';
+      var hasNamedIterator = false;
+      var propName;
 
-        var expression = this.data(Object.keys(el.attribs).join(' '));
-
-        if (not) {
-          expression = '!('+expression+')';
-        }
-
-        func += 'if ('+expression+') {\n';
-        func += this.buildFunctionBody(el, parentName, rootElements);
-        func += '}\n';
-
-        if (elseEl.length) {
-          func += 'else {\n';
-          func += this.buildFunctionBody(elseEl[0], parentName, rootElements);
-          func += '}\n';
-        }
+      if (attributeKeys.length) {
+        var pair = attributeKeys.join('').split(',');
+        propName = pair[0];
+        this.iteratorNames.push(pair[1]);
+        hasNamedIterator = true;
       }
-      else if (el.name === 'else') {
-        throw new Error('Found <else> without <if>');
-      }
-      else if (el.name === 'foreach' || el.name === 'forin') {
-        var attributeKeys = Object.keys(el.attribs);
-        if (attributeKeys.length > 1) {
-          throw new Error('Invalid arguments for '+el.name+' loop');
-        }
 
-        var isArray = el.name === 'foreach';
-        var hasNamedIterator = false;
-        var propName;
+      // Get the iterated object's name
+      var iterated = this.data(propName);
 
-        if (attributeKeys.length) {
-          var pair = attributeKeys.join('').split(',');
-          propName = pair[0];
-          this.iteratorNames.push(pair[1]);
-          hasNamedIterator = true;
-        }
+      // Increment nest count
+      var pnc = this.nestCount;
+      var nc = ++this.nestCount;
+      var iteratedVar = 'iterated_'+nc;
 
-        // Get the iterated object's name
-        var iterated = this.data(propName);
-
-        // Increment nest count
-        var pnc = this.nestCount;
-        var nc = ++this.nestCount;
-        var iteratedVar = 'iterated_'+nc;
-
-        func += 'var '+iteratedVar+' = '+iterated+';\n';
-        if (isArray) {
-          func += 'for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {\n';
-        }
-        else {
-          func += 'for (var i'+nc+' in '+iteratedVar+') {\n';
-        }
-        func += 'var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];\n';
-        func += this.buildFunctionBody(el, parentName, rootElements);
-        func += '}\n';
-
-        if (hasNamedIterator) {
-          this.iteratorNames.pop();
-        }
-
-        // Reset nest count
-        this.nestCount = pnc;
+      func += 'var '+iteratedVar+' = '+iterated+';\n';
+      if (isArray) {
+        func += 'for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {\n';
       }
       else {
-        if (el.type === 'text') {
+        func += 'for (var i'+nc+' in '+iteratedVar+') {\n';
+      }
+      func += 'var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];\n';
+      func += this.buildFunctionBody(el, parentName, rootElements);
+      func += '}\n';
+
+      if (hasNamedIterator) {
+        this.iteratorNames.pop();
+      }
+
+      // Reset nest count
+      this.nestCount = pnc;
+    }
+    else {
+      if (el.type === 'text') {
+        text = $(el).text();
+
+        // Don't include blank text nodes
+        if ((this.options.stripWhitespace && isBlank(text)) || !text.length) {
+          // Ignore whitespace between non-inline elements
+          if (!isInline(el.prev) && !isInline(el.next)) {
+            continue;
+          }
+
+          // When in stripWhitespace mode, use a single space if text is blank
+          if (isBlank(text)) {
+            text = ' ';
+          }
+        }
+
+        func += this.createTextNode(elName, text);
+      }
+      else {
+        func += this.createElement(elName, el.name, el.attribs.handle);
+
+        var attrs = el.attribs;
+        for (var attr in attrs) {
+          // Skip internal handles
+          if (attr === 'handle') {
+            continue;
+          }
+
+          func += this.setAttribute(elName, attr, attrs[attr]);
+        }
+
+        var children = el.children;
+        if (children.length === 1 && children[0].type === 'text') {
           text = $(el).text();
 
-          // Don't include blank text nodes
-          if ((this.options.stripWhitespace && isBlank(text)) || !text.length) {
-            // Ignore whitespace between non-inline elements
-            if (!isInline(el.prev) && !isInline(el.next)) {
-              continue;
-            }
-
-            // When in stripWhitespace mode, use a single space if text is blank
-            if (isBlank(text)) {
-              text = ' ';
-            }
-          }
-
-          func += this.createTextNode(elName, text);
-        }
-        else {
-          func += this.createElement(elName, el.name, el.attribs.handle);
-
-          var attrs = el.attribs;
-          for (var attr in attrs) {
-            // Skip internal handles
-            if (attr === 'handle') {
-              continue;
-            }
-
-            func += this.setAttribute(elName, attr, attrs[attr]);
-          }
-
-          var children = el.children;
-          if (children.length === 1 && children[0].type === 'text') {
-            text = $(el).text();
-
-            if (!(this.options.stripWhitespace && isBlank(text)) || text.length) {
-              // Set text content directly if there are no other children
-              func += this.setTextContent(elName, text);
-            }
-          }
-          else if (children.length) {
-            func += this.buildFunctionBody(el, elName, rootElements);
+          if (!(this.options.stripWhitespace && isBlank(text)) || text.length) {
+            // Set text content directly if there are no other children
+            func += this.setTextContent(elName, text);
           }
         }
+        else if (children.length) {
+          func += this.buildFunctionBody(el, elName, rootElements);
+        }
+      }
 
-        if (parentName) {
-          func += parentName+'.appendChild('+elName+');\n';
-        }
-        else {
-          // Store as a root element
-          rootElements.push(elName);
-        }
+      if (parentName) {
+        func += parentName+'.appendChild('+elName+');\n';
+      }
+      else {
+        // Store as a root element
+        rootElements.push(elName);
       }
     }
   }
