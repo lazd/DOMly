@@ -114,30 +114,24 @@ Compiler.prototype.createElement = function(elName, tag, elHandle) {
   var statement = 'var '+elName+' = ';
   var handleUsesDollar;
   var elHandleBare;
-  var handleProperty;
 
   if (elHandle) {
     handleUsesDollar = elHandle.charAt(0) === '$';
     elHandleBare = handleUsesDollar ? elHandle.slice(1) : elHandle;
-    handleProperty = 'this['+safe(elHandleBare)+']';
+    statement += 'this['+safe(elHandleBare)+']'+' = ';
   }
-
-  if (elHandle) {
-    statement += handleProperty+' = ';
-  }
-  statement += 'document.createElement('+safe(tag)+');\n';
+  statement += 'document.createElement('+safe(tag)+');';
 
   if (elHandle && handleUsesDollar) {
-    statement += 'this['+safe(elHandle)+'] = $('+elName+');\n';
+    statement += '\nthis['+safe(elHandle)+'] = $('+elName+');';
   }
 
-  return statement;
+  this.pushStatement(statement);
 };
 
 var conditionalAttrRE = /(if-|unless-)(.+)/;
 
 Compiler.prototype.setAttribute = function(elName, attr, value) {
-  var func = '';
   var attrs = [];
   var conditionalAttrMatch = attr.match(conditionalAttrRE);
   if (conditionalAttrMatch) {
@@ -147,7 +141,7 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
     if (conditional === 'unless') {
       expression = '!('+expression+')';
     }
-    func += 'if ('+expression+') {\n';
+    this.pushStatement('if ('+expression+') {');
 
     // Create a new HTML element
     // Load the HTML inside of a root element
@@ -164,21 +158,20 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
   }
 
   for (var i = 0; i < attrs.length; i++) {
-    func += elName+'.setAttribute('+safe(attrs[i].attr)+', '+this.makeVariableExpression(attrs[i].value)+');\n';
+    this.pushStatement(elName+'.setAttribute('+safe(attrs[i].attr)+', '+this.makeVariableExpression(attrs[i].value)+');');
   }
 
   if (conditionalAttrMatch) {
-    func += '}\n';
+    this.pushStatement('}');
   }
-  return func;
 };
 
 Compiler.prototype.setTextContent = function(elName, text) {
-  return elName+'.textContent = '+this.makeVariableExpression(text)+';\n';
+  this.pushStatement(elName+'.textContent = '+this.makeVariableExpression(text)+';');
 };
 
 Compiler.prototype.createTextNode = function(elName, text) {
-  return 'var '+elName+' = document.createTextNode('+this.makeVariableExpression(text)+');\n';
+  this.pushStatement('var '+elName+' = document.createTextNode('+this.makeVariableExpression(text)+');');
 };
 
 Compiler.prototype.makeVariableExpression = function(string) {
@@ -271,7 +264,6 @@ Compiler.prototype.data = function(path) {
 
 Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) {
   rootElements = rootElements || [];
-  var func = '';
   var text;
   var $ = this.$;
   var isRoot = this.count === 0;
@@ -285,7 +277,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
       var helperName = el.attribs.name;
 
       // Call the helper in the current context, passing processed text content
-      func += parentName+'.appendChild(document.createTextNode('+helperName+'.call(this, '+this.makeVariableExpression($(el).text())+')));\n';
+      this.pushStatement(parentName+'.appendChild(document.createTextNode('+helperName+'.call(this, '+this.makeVariableExpression($(el).text())+')));');
     }
     else if (el.name === 'partial') {
       var partialName = el.attribs.name;
@@ -304,20 +296,24 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
       args = args.split(argSplitRE).map(this.data).join(', ');
 
       // Call the partial in the current context
-      func += 'var '+elName+' = '+partialName+'.call(this, '+args+');\n';
+      this.pushStatement('var '+elName+' = '+partialName+'.call(this, '+args+');');
 
       // Add the returned elements
+      // @todo add support for define,update
       var iterator = 'i'+elName;
-      func += 'for (var '+iterator+' = 0, n'+iterator+' = '+elName+'.length; '+iterator+' < n'+iterator+'; '+iterator+'++) {\n';
-      func += parentName+'.appendChild('+elName+'['+iterator+']);\n';
-      func += '}\n';
+      this.pushStatement('for (var '+iterator+' = 0, n'+iterator+' = '+elName+'.length; '+iterator+' < n'+iterator+'; '+iterator+'++) {');
+      this.indent++;
+      this.pushStatement(parentName+'.appendChild('+elName+'['+iterator+']);');
+      this.indent--;
+      this.pushStatement('}');
     }
     else if (el.name === 'js') {
       // Add literal JavaScript
-      func += $(el).text()+'\n';
+      // @todo add support for define/update
+      this.pushStatement($(el).text()+'');
 
       // Reset data
-      func += 'data_'+this.nestCount+' = data;\n';
+      this.pushStatement('data_'+this.nestCount+' = data;');
     }
     else if (el.name === 'if' || el.name === 'unless') {
       var not = (el.name === 'unless');
@@ -334,14 +330,18 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
         expression = '!('+expression+')';
       }
 
-      func += 'if ('+expression+') {\n';
-      func += this.buildFunctionBody(el, parentName, rootElements);
-      func += '}\n';
+      this.pushStatement('if ('+expression+') {');
+      this.indent++;
+      this.buildFunctionBody(el, parentName, rootElements);
+      this.indent--;
+      this.pushStatement('}');
 
       if (elseEl.length) {
-        func += 'else {\n';
-        func += this.buildFunctionBody(elseEl[0], parentName, rootElements);
-        func += '}\n';
+        this.pushStatement('else {');
+        this.indent++;
+        this.buildFunctionBody(elseEl[0], parentName, rootElements);
+        this.indent--;
+        this.pushStatement('}');
       }
     }
     else if (el.name === 'else') {
@@ -368,27 +368,29 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
       var iterated = this.data(propName);
 
       // Increment nest count
-      var pnc = this.nestCount;
       var nc = ++this.nestCount;
       var iteratedVar = 'iterated_'+nc;
 
-      func += 'var '+iteratedVar+' = '+iterated+';\n';
+      // @todo handle update
+      this.pushStatement('var '+iteratedVar+' = '+iterated+';');
       if (isArray) {
-        func += 'for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {\n';
+        this.pushStatement('for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {');
       }
       else {
-        func += 'for (var i'+nc+' in '+iteratedVar+') {\n';
+        this.pushStatement('for (var i'+nc+' in '+iteratedVar+') {');
       }
-      func += 'var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];\n';
-      func += this.buildFunctionBody(el, parentName, rootElements);
-      func += '}\n';
+      this.indent++;
+      this.pushStatement('var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];');
+      this.buildFunctionBody(el, parentName, rootElements);
+      this.indent--;
+      this.pushStatement('}');
 
       if (hasNamedIterator) {
         this.iteratorNames.pop();
       }
 
       // Reset nest count
-      this.nestCount = pnc;
+      --this.nestCount;
     }
     else {
       if (el.type === 'text') {
@@ -407,10 +409,10 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
           }
         }
 
-        func += this.createTextNode(elName, text);
+        this.createTextNode(elName, text);
       }
       else {
-        func += this.createElement(elName, el.name, el.attribs.handle);
+        this.createElement(elName, el.name, el.attribs.handle);
 
         var attrs = el.attribs;
         for (var attr in attrs) {
@@ -419,7 +421,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
             continue;
           }
 
-          func += this.setAttribute(elName, attr, attrs[attr]);
+          this.setAttribute(elName, attr, attrs[attr]);
         }
 
         var children = el.children;
@@ -428,16 +430,16 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
 
           if (!(this.options.stripWhitespace && isBlank(text)) || text.length) {
             // Set text content directly if there are no other children
-            func += this.setTextContent(elName, text);
+            this.setTextContent(elName, text);
           }
         }
         else if (children.length) {
-          func += this.buildFunctionBody(el, elName, rootElements);
+          this.buildFunctionBody(el, elName, rootElements);
         }
       }
 
       if (parentName) {
-        func += parentName+'.appendChild('+elName+');\n';
+        this.pushStatement(parentName+'.appendChild('+elName+');');
       }
       else {
         // Store as a root element
@@ -448,10 +450,13 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
 
   // Return a list of root elements
   if (isRoot) {
-    func += 'return ['+rootElements.join(',')+'];\n';
+    this.pushStatement('return ['+rootElements.join(',')+'];');
   }
+};
 
-  return func;
+Compiler.prototype.pushStatement = function(statement) {
+  statement = indent(this.indent)+statement;
+  this.statements.push(statement);
 };
 
 Compiler.prototype.compile = function compile(html) {
@@ -468,27 +473,34 @@ Compiler.prototype.compile = function compile(html) {
     prettyPrint(root);
   }
 
-  // Reset count
+  // Reset vars
+  this.mode = 'create';
   this.count = 0;
+  this.statements = [];
   this.nestCount = 0;
+  this.indent = 1;
+
+  // Tack a data declaration on so eval and foreach can use it
+  this.pushStatement('var data;');
+
+  // Ensure initial data is defined so eval can modify it
+  if (html.match(jsTagRE)) {
+    this.pushStatement('data = data_0 = typeof data_0 === "undefined" ? {} : data_0;');
+  }
 
   // Build function body
-  var functionBody = this.buildFunctionBody(root);
+  this.buildFunctionBody(root);
 
-  // Tack a data declaration on so eval can use it and make sure data is defined
-  if (html.match(jsTagRE)) {
-    functionBody = 'var data = data_0 = typeof data_0 === "undefined" ? {} : data_0;\n'+functionBody;
-  }
-  else {
-    functionBody = 'var data;\n'+functionBody;
-  }
+  var functionBody = this.statements.join('\n');
 
   if (this.options.debug) {
     console.log('\nCompiled function:');
     console.log(functionBody);
   }
 
-  return new Function('data_0', functionBody);
+  var func = new Function('data_0', functionBody);
+
+  return func;
 };
 
 module.exports = function(html, options) {
