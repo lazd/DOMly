@@ -6,6 +6,7 @@ var blankRE = /^[\s]*$/;
 var parentDataRE = /parent\./g;
 var spaceSplitRE = /\s+/;
 var argSplitRE = /\s*,\s*/;
+var jsTagRE = /<js>/;
 
 function indent(spaces) {
   return (new Array(spaces)).join('\t');
@@ -313,7 +314,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
         func += '}\n';
       }
       else if (el.name === 'js') {
-        // Add literaly JavaScript
+        // Add literal JavaScript
         func += $(el).text()+'\n';
 
         // Reset data
@@ -477,7 +478,7 @@ Compiler.prototype.compile = function compile(html) {
   var functionBody = this.buildFunctionBody(root);
 
   // Tack a data declaration on so eval can use it and make sure data is defined
-  if (html.match(/<js>/)) {
+  if (html.match(jsTagRE)) {
     functionBody = 'var data = data_0 = typeof data_0 === "undefined" ? {} : data_0;\n'+functionBody;
   }
   else {
