@@ -281,7 +281,13 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
 
     if (el.type === 'tag') {
       // Process special tags
-      if (el.name === 'partial') {
+      if (el.name === 'helper') {
+        var helperName = el.attribs.name;
+
+        // Call the helper in the current context, passing processed text content
+        func += parentName+'.appendChild(document.createTextNode('+helperName+'.call(this, '+this.makeVariableExpression($(el).text())+')));\n';
+      }
+      else if (el.name === 'partial') {
         var partialName = el.attribs.name;
         var args = el.attribs.args;
 
@@ -306,7 +312,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) 
         func += parentName+'.appendChild('+elName+'['+iterator+']);\n';
         func += '}\n';
       }
-      if (el.name === 'js') {
+      else if (el.name === 'js') {
         // Add literaly JavaScript
         func += $(el).text()+'\n';
 

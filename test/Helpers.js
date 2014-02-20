@@ -31,4 +31,20 @@ describe('Helpers', function() {
       }
     });
   });
+
+  it('should be passed a block', function() {
+    test({
+      fixture: 'Helper with block',
+      data: { name: 'name' },
+      globals: {
+        capitalize: function(str) {
+          return str.slice(0,1).toUpperCase()+str.slice(1);
+        }
+      },
+      debug: true,
+      done: function($) {
+        expect($('div').text()).to.equal('The name is Name');
+      }
+    });
+  });
 });
