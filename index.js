@@ -268,11 +268,12 @@ Compiler.prototype.data = function(path) {
   }
 };
 
-Compiler.prototype.buildFunctionBody = function(root, parentName) {
+Compiler.prototype.buildFunctionBody = function(root, parentName, rootElements) {
+  rootElements = rootElements || [];
   var func = '';
   var text;
   var $ = this.$;
-  var rootElements = [];
+  var isRoot = this.count === 0;
 
   for (var i = 0; i < root.children.length; i++) {
     var el = root.children[i];
@@ -304,7 +305,6 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         func += 'for (var '+iterator+' = 0, n'+iterator+' = '+elName+'.length; '+iterator+' < n'+iterator+'; '+iterator+'++) {\n';
         func += parentName+'.appendChild('+elName+'['+iterator+']);\n';
         func += '}\n';
-        continue;
       }
       if (el.name === 'js') {
         // Add literaly JavaScript
@@ -312,7 +312,6 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
         // Reset data
         func += 'data_'+this.nestCount+' = data;\n';
-        continue;
       }
       else if (el.name === 'if' || el.name === 'unless') {
         var not = (el.name === 'unless');
@@ -330,16 +329,14 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         }
 
         func += 'if ('+expression+') {\n';
-        func += this.buildFunctionBody(el, parentName);
+        func += this.buildFunctionBody(el, parentName, rootElements);
         func += '}\n';
 
         if (elseEl.length) {
           func += 'else {\n';
-          func += this.buildFunctionBody(elseEl[0], parentName);
+          func += this.buildFunctionBody(elseEl[0], parentName, rootElements);
           func += '}\n';
         }
-
-        continue;
       }
       else if (el.name === 'else') {
         throw new Error('Found <else> without <if>');
@@ -377,7 +374,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
           func += 'for (var i'+nc+' in '+iteratedVar+') {\n';
         }
         func += 'var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];\n';
-        func += this.buildFunctionBody(el, parentName);
+        func += this.buildFunctionBody(el, parentName, rootElements);
         func += '}\n';
 
         if (hasNamedIterator) {
@@ -386,66 +383,66 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
         // Reset nest count
         this.nestCount = pnc;
-
-        continue;
       }
       else {
-        func += this.createElement(elName, el.name, el.attribs.handle);
-
-        // Store as a root element
-        if (!parentName) {
-          rootElements.push(elName);
-        }
-
-        var attrs = el.attribs;
-        for (var attr in attrs) {
-          // Skip internal handles
-          if (attr === 'handle') {
-            continue;
-          }
-
-          func += this.setAttribute(elName, attr, attrs[attr]);
-        }
-
-        var children = el.children;
-        if (children.length === 1 && children[0].type === 'text') {
+        if (el.type === 'text') {
           text = $(el).text();
 
-          if (!(this.options.stripWhitespace && isBlank(text)) || text.length) {
-            // Set text content directly if there are no other children
-            func += this.setTextContent(elName, text);
+          // Don't include blank text nodes
+          if ((this.options.stripWhitespace && isBlank(text)) || !text.length) {
+            // Ignore whitespace between non-inline elements
+            if (!isInline(el.prev) && !isInline(el.next)) {
+              continue;
+            }
+
+            // When in stripWhitespace mode, use a single space if text is blank
+            if (isBlank(text)) {
+              text = ' ';
+            }
+          }
+
+          func += this.createTextNode(elName, text);
+        }
+        else {
+          func += this.createElement(elName, el.name, el.attribs.handle);
+
+          var attrs = el.attribs;
+          for (var attr in attrs) {
+            // Skip internal handles
+            if (attr === 'handle') {
+              continue;
+            }
+
+            func += this.setAttribute(elName, attr, attrs[attr]);
+          }
+
+          var children = el.children;
+          if (children.length === 1 && children[0].type === 'text') {
+            text = $(el).text();
+
+            if (!(this.options.stripWhitespace && isBlank(text)) || text.length) {
+              // Set text content directly if there are no other children
+              func += this.setTextContent(elName, text);
+            }
+          }
+          else if (children.length) {
+            func += this.buildFunctionBody(el, elName, rootElements);
           }
         }
-        else if (children.length) {
-          func += this.buildFunctionBody(el, elName);
+
+        if (parentName) {
+          func += parentName+'.appendChild('+elName+');\n';
+        }
+        else {
+          // Store as a root element
+          rootElements.push(elName);
         }
       }
-    }
-    else if (el.type === 'text') {
-      text = $(el).text();
-
-      // Don't include blank text nodes
-      if ((this.options.stripWhitespace && isBlank(text)) || !text.length) {
-        if (!isInline(el.prev) && !isInline(el.next)) {
-          continue;
-        }
-
-        // When in stripWhitespace mode, use a single space if text is blank
-        if (isBlank(text)) {
-          text = ' ';
-        }
-      }
-
-      func += this.createTextNode(elName, text);
-    }
-
-    if (parentName) {
-      func += parentName+'.appendChild('+elName+');\n';
     }
   }
 
   // Return a list of root elements
-  if (!parentName) {
+  if (isRoot) {
     func += 'return ['+rootElements.join(',')+'];\n';
   }
 
