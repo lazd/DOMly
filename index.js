@@ -433,15 +433,17 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         this.pushStatement(parentName+'.appendChild('+elName+');');
       }
       else {
-        // Store as a root element
-        this.pushStatement('frag.appendChild('+elName+');');
+        if (this.root !== elName) {
+          // Store as a root element
+          this.pushStatement(this.root+'.appendChild('+elName+');');
+        }
       }
     }
   }
 
   // Return a list of root elements
   if (isRoot) {
-    this.pushStatement('return frag;');
+    this.pushStatement('return '+this.root+';');
   }
 };
 
@@ -472,7 +474,13 @@ Compiler.prototype.compile = function compile(html) {
   this.indent = 1;
 
   // Create a document fragment to hold the template
-  this.pushStatement('var frag = document.createDocumentFragment();');
+  if (root.children.length > 1) {
+    this.root = 'frag';
+    this.pushStatement('var frag = document.createDocumentFragment();');
+  }
+  else {
+    this.root = 'el0';
+  }
 
   // Tack a data declaration on so eval and foreach can use it
   this.pushStatement('var data;');
