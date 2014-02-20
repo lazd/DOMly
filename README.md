@@ -179,6 +179,21 @@ Use space to separate multiple attributes.
 ```html
 <button unless-disabled='class="enabled"'>Buy</button>
 ```
+### `{{>SomeNameSpace.someFunction[ arg1 arg2]}}`
+
+Call `SomeNameSpace.someFunction`, passing `arg1` and `arg2`. The function must return a string which will be inserted as text content.
+
+If no arguments are passed, the current data context will be passed.
+
+### `<partial name="SomeNameSpace.someFunction"[ args="arg1, arg2"]>`
+
+Call `SomeNameSpace.someFunction`, passing `arg1` and `arg2`. The function must return an array of HTMLElements.
+
+If no arguments are passed, the current data context will be passed.
+
+### `<helper name="SomeNameSpace.someFunction">{{someProp}} and text</helper>`
+
+Call `SomeNameSpace.someFunction`, passing the evaluated string. The function must return a string which will be inserted as text content.
 
 ### `<js>`
 
