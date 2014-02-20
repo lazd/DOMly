@@ -9,7 +9,12 @@ var argSplitRE = /\s*,\s*/;
 var jsTagRE = /<js>/;
 
 function indent(spaces) {
-  return (new Array(spaces)).join('\t');
+  var space = '';
+  while (spaces > 0) {
+    space += '\t';
+    spaces--;
+  }
+  return space;
 }
 
 function prettyPrint(node, spaces) {
