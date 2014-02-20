@@ -1,0 +1,14 @@
+<h1><%- obj.header %></h1>
+<% if(obj.hasItems) { %>
+  <ul>
+  <% _.each(obj.items, function(item) { %>
+    <% if(item.current) { %>
+      <li><strong><%- item.name %></strong></li>
+    <% } else { %>
+      <li><a href="<%- item.url %>"><%- item.name %></a></li>
+    <% } %>
+  <% }); %>
+  </ul>
+<% } else { %>
+  <p>The list is empty.</p>
+<% } %>

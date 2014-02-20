@@ -1,0 +1,14 @@
+<h1>{{=it.header}}</h1>
+{{? it.hasItems}}
+  <ul>
+  {{~it.items :item:index}}
+    {{? item.current}}
+      <li><strong>{{=item.name}}</strong></li>
+    {{??}}
+      <li><a href="{{=item.url}}">{{=item.name}}</a></li>
+    {{?}}
+  {{~}}
+  </ul>
+{{??}}
+  <p>The list is empty.</p>
+{{?}}
