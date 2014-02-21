@@ -61,8 +61,10 @@ describe('Conditionals', function() {
   it('should support if on methods with arguments', function() {
     var spy = sinon.spy();
     var data = {
-      arg1: true,
-      arg2: true,
+      args: {
+        arg1: true,
+        arg2: true,
+      },
       method: function(arg1, arg2) {
         spy();
         return arg1 && arg2;
@@ -70,7 +72,7 @@ describe('Conditionals', function() {
     };
 
     test({
-      fixture: 'If with method invocation and arguments',
+      fixture: 'If with method invocation and object arguments',
       data: data,
       done: function($) {
         expect(spy.called).to.be.true;
@@ -147,6 +149,17 @@ describe('Conditionals', function() {
     });
   });
 
+  it('should set attributes conditionally with data in attributes', function() {
+    test({
+      fixture: 'Conditional attributes with data in attributes',
+      data: { disabled: true, disabledClass: 'customDisabledClass' },
+      done: function($) {
+        expect($('button#disabled').is(':disabled')).to.be.true;
+        expect($('button#disabled').attr('class')).to.equal('customDisabledClass');
+      }
+    });
+  });
+
   it('should set attributes conditionally with method invocation', function() {
     test({
       fixture: 'Conditional attributes with method invocation',
@@ -173,16 +186,17 @@ describe('Conditionals', function() {
       { name: 'Item 2' }
     ];
 
-    test({
-      fixture: 'For each with nested parent conditional',
-      data: {
-        showItems: false,
-        items: items
-      },
-      done: function($) {
-        expect($('li').length).to.equal(0);
-      }
-    });
+    // test({
+    //   fixture: 'For each with nested parent conditional',
+    //   debug: true,
+    //   data: {
+    //     showItems: false,
+    //     items: items
+    //   },
+    //   done: function($) {
+    //     expect($('li').length).to.equal(0);
+    //   }
+    // });
 
     test({
       fixture: 'For each with nested parent conditional',

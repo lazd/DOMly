@@ -1,12 +1,12 @@
 <div>
-  <button id="disabled" if-disabled="disabled='disabled'">A Button</button>
-  <button id="disabledWithClass" if-disabled="disabled='disabled' class='disabledButton'">A Button</button>
+  <button id="disabled" if-data.disabled="disabled='disabled'">A Button</button>
+  <button id="disabledWithClass" if-data.disabled="disabled='disabled' class='disabledButton'">A Button</button>
   <ul>
-    <foreach items>
-      <li if-parent.disabled="class='disabledItem'">{{this}}</button>
+    <foreach data.items>
+      <li if-parent.disabled="class='disabledItem'">{{data}}</button>
     </foreach>
   </ul>
-  <foreach items>
-    <a unless-parent.disabled="class='enabledLink'">{{this}}</a>
+  <foreach data.items>
+    <a unless-parent.disabled="class='enabledLink'">{{data}}</a>
   </foreach>
 </div>

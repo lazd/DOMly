@@ -1,15 +1,9 @@
 <ul
-  data-first="{{passThrough(val1)}}"
-  data-second="{{passThrough(data.val2)}}"
-  data-third="{{data.passThrough(val3)}}"
-  data-fourth="{{data.passThrough(data.val4)}}"
-  data-result="{{giveResult()}}"
-  data-result-path="{{data.giveResult()}}"
+  data-first="{{data.passThrough(data.val1)}}"
+  data-second="{{data.passThrough(data.val2)}}"
+  data-result="{{data.giveResult()}}"
 >
-  <li>{{passThrough(val1)}}</li>
-  <li>{{passThrough(val1,val2)}}</li>
   <li>{{data.passThrough(data.val1)}}</li>
   <li>{{data.passThrough(data.val1,data.val2)}}</li>
-  <li>{{giveResult()}}</li>
   <li>{{data.giveResult()}}</li>
 </ul>

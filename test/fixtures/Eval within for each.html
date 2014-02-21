@@ -5,7 +5,7 @@
     }
     data.items.push('Item 3');
   </js>
-  <foreach items,index>
+  <foreach data.items,index>
     <js>
       if (typeof data !== 'string') {
         throw new Error('data was not set correctly in foreach');

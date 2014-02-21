@@ -41,7 +41,7 @@ describe('Foreach loops', function() {
     });
   });
 
-  it('should set allow reference of parent\'s parent', function() {
+  it('should allow reference of parent\'s parent', function() {
     test({
       fixture: 'For each with nested parent reference',
       data: {

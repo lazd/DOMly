@@ -121,7 +121,6 @@ function usesVariables(string) {
 
 function Compiler(options) {
   this.data = this.data.bind(this);
-  this.scopedStatementFromNode = this.scopedStatementFromNode.bind(this);
   this.globalStatementFromNode = this.globalStatementFromNode.bind(this);
   this.count = 0;
   this.nestCount = 0;
@@ -226,7 +225,7 @@ Compiler.prototype.makeVariableStatement = function(string) {
   return statement;
 };
 
-// @todo Rename to this.scopedStatement or this.statement
+// @todo Rename to this.scopedStatement?
 Compiler.prototype.data = function(path) {
   if (path === '') {
     return '';
@@ -250,19 +249,15 @@ Compiler.prototype.data = function(path) {
   }
 
   // Break into pieces
-  var statement = this.scopedStatementFromNode(result);
+  var statement = this.globalStatementFromNode(result);
 
   return statement;
 };
 
-Compiler.prototype.scopedArgListStatementFromArgs = function(args) {
-  return args.map(this.scopedStatementFromNode).join(',');
-};
 
-// Not used currently as args passed to global statements are scoped
-// Compiler.prototype.globalArgListStatementFromArgs = function(args) {
-//   return args.map(this.globalStatementFromNode).join(',');
-// };
+Compiler.prototype.globalArgListStatementFromArgs = function(args) {
+  return args.map(this.globalStatementFromNode).join(',');
+};
 
 Compiler.prototype.globalStatement = function(path, defaultArgs) {
   if (path === '') {
@@ -282,56 +277,8 @@ Compiler.prototype.globalStatement = function(path, defaultArgs) {
 };
 
 Compiler.prototype.globalStatementFromNode = function(node, defaultArgs) {
-// Make path
-  var statement = '';
-  var i;
-  var piece;
-
-  if (node.type === 'literal') {
-    return node.value;
-  }
-
-  // Get the actual path from the invocation
-  // invocation.path is a path object
-  if (node.type === 'invocation') {
-    node.path = node.path.path;
-  }
-
-  var pieces = node.path;
-
-  for (i = 0; i < pieces.length; i++) {
-    piece = pieces[i];
-
-    if (i === 0) {
-      // First is bare, could be this, window, or some global
-      statement += piece;
-    }
-    else {
-      statement += '['+safe(piece)+']';
-    }
-  }
-
-  if (node.type === 'invocation') {
-    statement += '(';
-
-    if (defaultArgs) {
-      var arg = { type: 'literal', value: [defaultArgs] };
-      node.args = node.args ? node.args.concat(arg) : [arg];
-    }
-
-    if (node.args) {
-      // Args should be still be scoped
-      statement += this.scopedArgListStatementFromArgs(node.args);
-    }
-    statement += ')';
-  }
-
-  return statement;
-};
-
-Compiler.prototype.scopedStatementFromNode = function(node) {
   // Make path
-  var statement;
+  var statement = '';
   var i = 0;
   var piece;
 
@@ -359,24 +306,40 @@ Compiler.prototype.scopedStatementFromNode = function(node) {
     var parentNum = this.nestCount - i;
     statement = 'data_'+parentNum;
   }
-  else {
-    statement = 'data_'+this.nestCount;
-  }
 
   for (; i < pieces.length; i++) {
     piece = pieces[i];
     if (piece === 'data' && i === 0) {
+      // Correctly assign initial data
+      statement = 'data_'+this.nestCount;
+      continue;
+    }
+    else if (piece === 'this' && i === 0) {
       // Skip initial this
+      statement = 'this';
       continue;
     }
 
-    statement += '['+safe(piece)+']';
+    if (statement === '') {
+      // Allow accessing of global variables
+      statement += piece;
+    }
+    else {
+      statement += '['+safe(piece)+']';
+    }
   }
 
   if (node.type === 'invocation') {
     statement += '(';
+
+    if (defaultArgs) {
+      var arg = { type: 'literal', value: [defaultArgs] };
+      node.args = node.args ? node.args.concat(arg) : [arg];
+    }
+
     if (node.args) {
-      statement += this.scopedArgListStatementFromArgs(node.args);
+      // Args should be still be scoped
+      statement += this.globalArgListStatementFromArgs(node.args);
     }
     statement += ')';
   }
@@ -596,12 +559,13 @@ Compiler.prototype.compile = function compile(html) {
     this.pushStatement('var frag = document.createDocumentFragment();');
   }
 
-  // Tack a data declaration on so eval and foreach can use it
-  this.pushStatement('var data = data_0;');
-
   // Ensure initial data is defined so eval can modify it
   if (html.match(jsTagRE)) {
-    this.pushStatement('data = data_0 = typeof data_0 === "undefined" ? {} : data_0;');
+    this.pushStatement('var data = data_0 = typeof data_0 === "undefined" ? {} : data_0;');
+  }
+  else {
+    // Tack a data declaration on so eval and foreach can use it
+    this.pushStatement('var data = data_0;');
   }
 
   // Build function body

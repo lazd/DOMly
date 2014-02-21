@@ -1,15 +1,15 @@
 <div>
-  <h1>Category: {{category}}</h1>
+  <h1>Category: {{data.category}}</h1>
   <ol>
-    <foreach items>
+    <foreach data.items>
       <li>
-        <h2>{{parent.category}}: {{name}}</h2>
+        <h2>{{parent.category}}: {{data.name}}</h2>
         <h3>Tags</h3>
         <ul>
-          <foreach tags>
+          <foreach data.tags>
             <li>{{parent.parent.category}}: {{parent.name}}: {{data}}</li>
           </foreach>
-          <foreach tags>
+          <foreach data.tags>
             <li>{{parent.parent.category}}: {{parent.name}}: {{data}}</li>
           </foreach>
         </ul>

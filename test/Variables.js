@@ -58,16 +58,10 @@ describe('Variables', function() {
       done: function($) {
         expect($('ul').attr('data-first')).to.equal('firstVal');
         expect($('ul').attr('data-second')).to.equal('secondVal');
-        expect($('ul').attr('data-third')).to.equal('thirdVal');
-        expect($('ul').attr('data-fourth')).to.equal('fourthVal');
         expect($('ul').attr('data-result')).to.equal('result');
-        expect($('ul').attr('data-result-path')).to.equal('result');
         expect($('li')[0].textContent).to.equal('firstVal');
         expect($('li')[1].textContent).to.equal('firstValsecondVal');
-        expect($('li')[2].textContent).to.equal('firstVal');
-        expect($('li')[3].textContent).to.equal('firstValsecondVal');
-        expect($('li')[4].textContent).to.equal('result');
-        expect($('li')[5].textContent).to.equal('result');
+        expect($('li')[2].textContent).to.equal('result');
       },
       data: {
         passThrough: function(arg1, arg2) {
@@ -77,9 +71,7 @@ describe('Variables', function() {
           return 'result';
         },
         val1: 'firstVal',
-        val2: 'secondVal',
-        val3: 'thirdVal',
-        val4: 'fourthVal'
+        val2: 'secondVal'
       }
     });
   });
