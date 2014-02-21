@@ -64,7 +64,7 @@ describe('Foreach loops', function() {
     });
   });
 
-  it('should set this to loop context', function() {
+  it('should set data to loop context', function() {
     test({
       fixture: 'For each loop over array of strings',
       data: {

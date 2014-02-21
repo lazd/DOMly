@@ -1,7 +1,7 @@
 var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
-describe('Helpers', function() {
+describe('Inline helpers', function() {
   it('should pass variables to helpers', function() {
     test({
       fixture: 'Helper with args',
@@ -12,14 +12,14 @@ describe('Helpers', function() {
         }
       },
       done: function($) {
-        expect($('div').text()).to.equal('Name');
+        expect($('body').text()).to.equal('Name');
       }
     });
   });
 
-  it('should pass current data context to helper if no arguments provided', function() {
+  it('should allow passing of current data context to helper', function() {
     test({
-      fixture: 'Helper',
+      fixture: 'Helper with data',
       data: { name: 'name' },
       globals: {
         capitalize: function(obj) {
@@ -27,12 +27,14 @@ describe('Helpers', function() {
         }
       },
       done: function($) {
-        expect($('div').text()).to.equal('Name');
+        expect($('body').text()).to.equal('Name');
       }
     });
   });
+});
 
-  it('should be passed a block', function() {
+describe('Block helpers', function() {
+  it('should be passed a block if no arguments provided', function() {
     test({
       fixture: 'Helper with block',
       data: { name: 'name' },
@@ -42,7 +44,27 @@ describe('Helpers', function() {
         }
       },
       done: function($) {
-        expect($('div').text()).to.equal('The name is Name');
+        expect($('body').text()).to.equal('Name');
+      }
+    });
+  });
+
+  it('should be passed a block in addition to arguments', function() {
+    test({
+      fixture: 'Helper with block and args',
+      data: {
+        name: 'Larry',
+        game: 'code'
+      },
+      globals: {
+        concat: function() {
+          return Array.prototype.reduce.call(arguments, function(prev, cur) {
+            return prev += cur;
+          });
+        }
+      },
+      done: function($) {
+        expect($('body').text()).to.equal('Larry is my name, code is my game');
       }
     });
   });

@@ -9,6 +9,23 @@ var spaceSplitRE = /\s+/;
 var argSplitRE = /\s*,\s*/;
 var jsTagRE = /<js>/;
 
+var customTags = [
+  'if',
+  'else',
+  'foreach',
+  'partial',
+  'helper',
+  'forin',
+  'js'
+];
+
+/*
+Check if an htmlparser2 node is a real HTML element
+*/
+function isRealElement(root) {
+  return root.type === 'tag' && !~customTags.indexOf(root.name);
+}
+
 function indent(spaces) {
   var space = '';
   while (spaces > 0) {
@@ -58,17 +75,11 @@ function getVariableArray(string) {
     }
 
     if (p1.slice(0,1) === '>') {
-      // Helpers
-      var args = p1.slice(1).split(spaceSplitRE);
-      var helper = args.shift();
-      if (args.length === 0) {
-        args.push('this');
-      }
-      array.push({ helper: helper, args: args });
+      array.push({ type: 'helper', statement: p1.slice(1) });
     }
     else {
       // Add variables
-      array.push({ variable: p1 });
+      array.push({ type: 'variable', statement: p1 });
     }
 
     lastOffset = offset + match.length;
@@ -110,7 +121,8 @@ function usesVariables(string) {
 
 function Compiler(options) {
   this.data = this.data.bind(this);
-  this.statementFromNode = this.statementFromNode.bind(this);
+  this.scopedStatementFromNode = this.scopedStatementFromNode.bind(this);
+  this.globalStatementFromNode = this.globalStatementFromNode.bind(this);
   this.count = 0;
   this.nestCount = 0;
   this.iteratorNames = [];
@@ -201,12 +213,12 @@ Compiler.prototype.makeVariableStatement = function(string) {
       statement += safe(piece);
     }
     else {
-      if (piece.variable) {
+      if (piece.type === 'variable') {
         // Substitute variables
-        statement += this.data(piece.variable);
+        statement += this.data(piece.statement);
       }
-      else if (piece.helper) {
-        statement += piece.helper+'.call(this, '+piece.args.map(this.data).join(', ')+')';
+      else if (piece.type === 'helper') {
+        statement += this.globalStatement(piece.statement);
       }
     }
   }
@@ -214,12 +226,13 @@ Compiler.prototype.makeVariableStatement = function(string) {
   return statement;
 };
 
+// @todo Rename to this.scopedStatement or this.statement
 Compiler.prototype.data = function(path) {
   if (path === '') {
     return '';
   }
 
-  if (path === 'this') {
+  if (path === 'data') {
     return 'data_'+this.nestCount;
   }
 
@@ -237,20 +250,94 @@ Compiler.prototype.data = function(path) {
   }
 
   // Break into pieces
-  var statement = this.statementFromNode(result);
+  var statement = this.scopedStatementFromNode(result);
 
   return statement;
 };
 
-Compiler.prototype.argListStatementFromArgs = function(args) {
-  return args.map(this.statementFromNode).join(',');
+Compiler.prototype.scopedArgListStatementFromArgs = function(args) {
+  return args.map(this.scopedStatementFromNode).join(',');
 };
 
-Compiler.prototype.statementFromNode = function(node) {
+// Not used currently as args passed to global statements are scoped
+// Compiler.prototype.globalArgListStatementFromArgs = function(args) {
+//   return args.map(this.globalStatementFromNode).join(',');
+// };
+
+Compiler.prototype.globalStatement = function(path, defaultArgs) {
+  if (path === '') {
+    throw new Error('Cannot create global statement, provided path is empty');
+  }
+
+  var result = parser.parse(path);
+
+  if (this.options.debug) {
+    console.log('Parsed statement:', result);
+  }
+
+  // Break into pieces
+  var statement = this.globalStatementFromNode(result, defaultArgs);
+
+  return statement;
+};
+
+Compiler.prototype.globalStatementFromNode = function(node, defaultArgs) {
+// Make path
+  var statement = '';
+  var i;
+  var piece;
+
+  if (node.type === 'literal') {
+    return node.value;
+  }
+
+  // Get the actual path from the invocation
+  // invocation.path is a path object
+  if (node.type === 'invocation') {
+    node.path = node.path.path;
+  }
+
+  var pieces = node.path;
+
+  for (i = 0; i < pieces.length; i++) {
+    piece = pieces[i];
+
+    if (i === 0) {
+      // First is bare, could be this, window, or some global
+      statement += piece;
+    }
+    else {
+      statement += '['+safe(piece)+']';
+    }
+  }
+
+  if (node.type === 'invocation') {
+    statement += '(';
+
+    if (defaultArgs) {
+      var arg = { type: 'literal', value: [defaultArgs] };
+      node.args = node.args ? node.args.concat(arg) : [arg];
+    }
+
+    if (node.args) {
+      // Args should be still be scoped
+      statement += this.scopedArgListStatementFromArgs(node.args);
+    }
+    statement += ')';
+  }
+
+  return statement;
+};
+
+Compiler.prototype.scopedStatementFromNode = function(node) {
   // Make path
   var statement;
   var i = 0;
   var piece;
+
+  if (node.type === 'literal') {
+    return node.value;
+  }
 
   // Get the actual path from the invocation
   // invocation.path is a path object
@@ -278,7 +365,7 @@ Compiler.prototype.statementFromNode = function(node) {
 
   for (; i < pieces.length; i++) {
     piece = pieces[i];
-    if (piece === 'this' && i === 0) {
+    if (piece === 'data' && i === 0) {
       // Skip initial this
       continue;
     }
@@ -289,7 +376,7 @@ Compiler.prototype.statementFromNode = function(node) {
   if (node.type === 'invocation') {
     statement += '(';
     if (node.args) {
-      statement += this.argListStatementFromArgs(node.args);
+      statement += this.scopedArgListStatementFromArgs(node.args);
     }
     statement += ')';
   }
@@ -301,6 +388,11 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
   var text;
   var $ = this.$;
   var isRoot = this.count === 0;
+  var hasParent = !!parentName;
+
+  if (!hasParent) {
+    parentName = this.root;
+  }
 
   for (var i = 0; i < root.children.length; i++) {
     var el = root.children[i];
@@ -308,30 +400,21 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
     // Process special tags
     if (el.name === 'helper') {
-      var helperName = el.attribs.name;
+      // @todo handle block argument
+      var blockArgument = this.makeVariableStatement($(el).text());
+
+      var statement = this.globalStatement(Object.keys(el.attribs).join(''), blockArgument);
 
       // Call the helper in the current context, passing processed text content
-      this.pushStatement(parentName+'.appendChild(document.createTextNode('+helperName+'.call(this, '+this.makeVariableStatement($(el).text())+')));');
+      this.pushStatement(parentName+'.appendChild(document.createTextNode('+statement+'));');
     }
     else if (el.name === 'partial') {
-      var partialName = el.attribs.name;
-      var args = el.attribs.args;
-
-      // @todo Test this
-      if (!partialName) {
-        throw new Error('Partial name not specified');
-      }
-
-      // Pass current data if no args are defined
-      if (!args) {
-        args = 'this';
-      }
-
-      args = args.split(argSplitRE).map(this.data).join(', ');
+      var statement = this.globalStatement(Object.keys(el.attribs).join(''), 'data_'+this.nestCount);
 
       // Call the partial in the current context
       // Add the returned document fragment
-      this.pushStatement(parentName+'.appendChild('+partialName+'.call(this, '+args+'));');
+      // this.pushStatement(parentName+'.appendChild('+partialName+'.call(this, '+args+'));');
+      this.pushStatement(parentName+'.appendChild('+statement+');');
     }
     else if (el.name === 'js') {
       // Add literal JavaScript
@@ -464,14 +547,9 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         }
       }
 
-      if (parentName) {
+      if (this.root !== elName) {
+        // Store as a root element
         this.pushStatement(parentName+'.appendChild('+elName+');');
-      }
-      else {
-        if (this.root !== elName) {
-          // Store as a root element
-          this.pushStatement(this.root+'.appendChild('+elName+');');
-        }
       }
     }
   }
@@ -508,17 +586,18 @@ Compiler.prototype.compile = function compile(html) {
   this.nestCount = 0;
   this.indent = 1;
 
-  // Create a document fragment to hold the template
-  if (root.children.length > 1) {
+  if (root.children.length === 1 && isRealElement(root.children[0])) {
+    // Use the root element
+    this.root = 'el0';
+  }
+  else {
+    // Create a document fragment to hold the template
     this.root = 'frag';
     this.pushStatement('var frag = document.createDocumentFragment();');
   }
-  else {
-    this.root = 'el0';
-  }
 
   // Tack a data declaration on so eval and foreach can use it
-  this.pushStatement('var data;');
+  this.pushStatement('var data = data_0;');
 
   // Ensure initial data is defined so eval can modify it
   if (html.match(jsTagRE)) {

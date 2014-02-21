@@ -40,9 +40,9 @@ describe('Variables', function() {
     });
   });
 
-  it('should allow use of this', function() {
+  it('should allow use of data', function() {
     test({
-      fixture: 'Data with this',
+      fixture: 'Data with data',
       done: function($) {
         expect($('div').text()).to.equal('Name');
       },
