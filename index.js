@@ -1,5 +1,6 @@
 var cheerio = require('cheerio');
 var inlineElements = require('./lib/elements-inline.js');
+var parser = require('./lib/parser.js');
 
 var variableRE = /\{\{\s*(.*?)\s*\}\}/g;
 var blankRE = /^[\s]*$/;
@@ -7,7 +8,6 @@ var parentDataRE = /parent\./g;
 var spaceSplitRE = /\s+/;
 var argSplitRE = /\s*,\s*/;
 var jsTagRE = /<js>/;
-var invocationRE = /(.+)\((.*)\)$/;
 
 function indent(spaces) {
   var space = '';
@@ -110,6 +110,7 @@ function usesVariables(string) {
 
 function Compiler(options) {
   this.data = this.data.bind(this);
+  this.statementFromNode = this.statementFromNode.bind(this);
   this.count = 0;
   this.nestCount = 0;
   this.iteratorNames = [];
@@ -164,7 +165,7 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
   }
 
   for (var i = 0; i < attrs.length; i++) {
-    this.pushStatement(elName+'.setAttribute('+safe(attrs[i].attr)+', '+this.makeVariableExpression(attrs[i].value)+');');
+    this.pushStatement(elName+'.setAttribute('+safe(attrs[i].attr)+', '+this.makeVariableStatement(attrs[i].value)+');');
   }
 
   if (conditionalAttrMatch) {
@@ -173,44 +174,44 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
 };
 
 Compiler.prototype.setTextContent = function(elName, text) {
-  this.pushStatement(elName+'.textContent = '+this.makeVariableExpression(text)+';');
+  this.pushStatement(elName+'.textContent = '+this.makeVariableStatement(text)+';');
 };
 
 Compiler.prototype.createTextNode = function(elName, text) {
-  this.pushStatement('var '+elName+' = document.createTextNode('+this.makeVariableExpression(text)+');');
+  this.pushStatement('var '+elName+' = document.createTextNode('+this.makeVariableStatement(text)+');');
 };
 
-Compiler.prototype.makeVariableExpression = function(string) {
+Compiler.prototype.makeVariableStatement = function(string) {
   if (!usesVariables(string)) {
     return safe(string);
   }
 
-  var expression = '';
+  var statement = '';
   var pieces = getVariableArray(string);
   for (var i = 0; i < pieces.length; i++) {
     var piece = pieces[i];
 
     // Concat pieces together
     if (i !== 0) {
-      expression += '+';
+      statement += '+';
     }
 
     if (typeof piece === 'string') {
       // Include text directly
-      expression += safe(piece);
+      statement += safe(piece);
     }
     else {
       if (piece.variable) {
         // Substitute variables
-        expression += this.data(piece.variable);
+        statement += this.data(piece.variable);
       }
       else if (piece.helper) {
-        expression += piece.helper+'.call(this, '+piece.args.map(this.data).join(', ')+')';
+        statement += piece.helper+'.call(this, '+piece.args.map(this.data).join(', ')+')';
       }
     }
   }
 
-  return expression;
+  return statement;
 };
 
 Compiler.prototype.data = function(path) {
@@ -229,61 +230,71 @@ Compiler.prototype.data = function(path) {
     return 'i'+(iteratorNameIndex+1);
   }
 
-  path = path.replace(parentDataRE, '__template_parent_data__.');
+  var result = parser.parse(path);
 
-  if (~path.indexOf('.')) {
-    // Break into pieces
-    var pieces = path.split('.');
-
-    // Make path
-    var expression;
-    var i = 0;
-    var piece;
-
-    if (pieces[0] === '__template_parent_data__') {
-      // Resolve variable name
-      for (; i < pieces.length; i++) {
-        if (pieces[i] !== '__template_parent_data__') {
-          break;
-        }
-      }
-
-      // Calculate correct variable name
-      var parentNum = this.nestCount - i;
-      expression = 'data_'+parentNum;
-    }
-    else {
-      expression = 'data_'+this.nestCount;
-    }
-
-    for (; i < pieces.length; i++) {
-      piece = pieces[i];
-      if (piece === 'this' && i === 0) {
-        // Skip initial this
-        continue;
-      }
-
-      expression += this.handleInvocationPart(piece);
-    }
-
-    return expression;
+  if (this.options.debug) {
+    console.log('Parsed statement:', result);
   }
-  else {
-    return 'data_'+this.nestCount+this.handleInvocationPart(path);
-  }
+
+  // Break into pieces
+  var statement = this.statementFromNode(result);
+
+  return statement;
 };
 
-Compiler.prototype.handleInvocationPart = function(piece) {
-  // @todo Replace this hacky bit of code with jison
-  var invocationMatches = piece.match(invocationRE);
-  if (invocationMatches) {
-    var method = invocationMatches[1];
-    var args = invocationMatches[2].split(',').map(this.data).join(',');
-    return '['+safe(method)+']('+args+')';
+Compiler.prototype.argListStatementFromArgs = function(args) {
+  return args.map(this.statementFromNode).join(',');
+};
+
+Compiler.prototype.statementFromNode = function(node) {
+  // Make path
+  var statement;
+  var i = 0;
+  var piece;
+
+  // Get the actual path from the invocation
+  // invocation.path is a path object
+  if (node.type === 'invocation') {
+    node.path = node.path.path;
+  }
+
+  var pieces = node.path;
+
+  if (pieces[0] === 'parent') {
+    // Resolve variable name
+    for (; i < pieces.length; i++) {
+      if (pieces[i] !== 'parent') {
+        break;
+      }
+    }
+
+    // Calculate correct variable name
+    var parentNum = this.nestCount - i;
+    statement = 'data_'+parentNum;
   }
   else {
-    return '['+safe(piece)+']';
+    statement = 'data_'+this.nestCount;
   }
+
+  for (; i < pieces.length; i++) {
+    piece = pieces[i];
+    if (piece === 'this' && i === 0) {
+      // Skip initial this
+      continue;
+    }
+
+    statement += '['+safe(piece)+']';
+  }
+
+  if (node.type === 'invocation') {
+    statement += '(';
+    if (node.args) {
+      statement += this.argListStatementFromArgs(node.args);
+    }
+    statement += ')';
+  }
+
+  return statement;
 };
 
 Compiler.prototype.buildFunctionBody = function(root, parentName) {
@@ -300,7 +311,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
       var helperName = el.attribs.name;
 
       // Call the helper in the current context, passing processed text content
-      this.pushStatement(parentName+'.appendChild(document.createTextNode('+helperName+'.call(this, '+this.makeVariableExpression($(el).text())+')));');
+      this.pushStatement(parentName+'.appendChild(document.createTextNode('+helperName+'.call(this, '+this.makeVariableStatement($(el).text())+')));');
     }
     else if (el.name === 'partial') {
       var partialName = el.attribs.name;

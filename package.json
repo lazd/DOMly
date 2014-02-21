@@ -9,8 +9,11 @@
   },
   "author": "Larry Davis <lazdnet@gmail.com>",
   "license": "BSD-2-Clause",
-  "devDependencies": {
+  "dependencies": {
     "cheerio": "~0.13.1",
+    "jison": "~0.4.13"
+  },
+  "devDependencies": {
     "jsdom": "~0.10.1",
     "chai": "~1.9.0",
     "mocha": "~1.17.1",

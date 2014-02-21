@@ -54,25 +54,32 @@ describe('Variables', function() {
 
   it('should support method invocation', function() {
     test({
-      fixture: 'Method invocation with variables',
+      fixture: 'Method invocation with arguments',
       done: function($) {
-        expect($('ul').hasClass('result1')).to.be.true;
-        expect($('ul').attr('title')).to.equal('result1');
-        expect($('li')[0].textContent).to.equal('result2');
-        expect($('li')[1].textContent).to.equal('result3');
+        expect($('ul').attr('data-first')).to.equal('firstVal');
+        expect($('ul').attr('data-second')).to.equal('secondVal');
+        expect($('ul').attr('data-third')).to.equal('thirdVal');
+        expect($('ul').attr('data-fourth')).to.equal('fourthVal');
+        expect($('ul').attr('data-result')).to.equal('result');
+        expect($('ul').attr('data-result-path')).to.equal('result');
+        expect($('li')[0].textContent).to.equal('firstVal');
+        expect($('li')[1].textContent).to.equal('firstValsecondVal');
+        expect($('li')[2].textContent).to.equal('firstVal');
+        expect($('li')[3].textContent).to.equal('firstValsecondVal');
+        expect($('li')[4].textContent).to.equal('result');
+        expect($('li')[5].textContent).to.equal('result');
       },
       data: {
-        method1: function() {
-          return 'result1';
+        passThrough: function(arg1, arg2) {
+          return arg1 + (arg2 || '');
         },
-        method2: function() {
-          return 'result2';
+        giveResult: function() {
+          return 'result';
         },
-        method3: function(arg1,arg2) {
-          return arg1+arg2;
-        },
-        arg1: 'result',
-        arg2: '3'
+        val1: 'firstVal',
+        val2: 'secondVal',
+        val3: 'thirdVal',
+        val4: 'fourthVal'
       }
     });
   });
