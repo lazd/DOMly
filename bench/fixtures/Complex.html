@@ -1,11 +1,11 @@
-<h1>{{header}}</h1>
-<if hasItems>
+<h1>{{data.header}}</h1>
+<if data.hasItems>
   <ul>
-  <foreach items>
-    <if current>
-      <li><strong>{{name}}</strong></li>
+  <foreach data.items>
+    <if data.current>
+      <li><strong>{{data.name}}</strong></li>
     <else>
-      <li><a href="{{url}}">{{name}}</a></li>
+      <li><a href="{{data.url}}">{{data.name}}</a></li>
     </if>
   </foreach>
   </ul>
