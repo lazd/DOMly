@@ -173,7 +173,8 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
   }
 
   for (var i = 0; i < attrs.length; i++) {
-    this.pushStatement(elName+'.setAttribute('+safe(attrs[i].attr)+', '+this.makeVariableStatement(attrs[i].value)+');');
+    // Process both the attribute and the value to allow statements in either
+    this.pushStatement(elName+'.setAttribute('+this.makeVariableStatement(attrs[i].attr)+', '+this.makeVariableStatement(attrs[i].value)+');');
   }
 
   if (conditionalAttrMatch) {

@@ -152,10 +152,16 @@ describe('Conditionals', function() {
   it('should set attributes conditionally with data in attributes', function() {
     test({
       fixture: 'Conditional attributes with data in attributes',
-      data: { disabled: true, disabledClass: 'customDisabledClass' },
+      data: {
+        disabled: true,
+        disabledClass: 'customDisabledClass',
+        attr: 'title',
+        value: 'A title'
+      },
       done: function($) {
         expect($('button#disabled').is(':disabled')).to.be.true;
         expect($('button#disabled').attr('class')).to.equal('customDisabledClass');
+        expect($('button#disabled').attr('title')).to.equal('A title');
       }
     });
   });
