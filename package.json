@@ -28,7 +28,7 @@
     "karma-phantomjs-launcher": "~0.1.1",
     "karma-ios-launcher": "0.0.3",
     "karma-safari-launcher": "~0.1.1",
-    "karma-benchmark": "~0.3.1",
+    "karma-benchmark": "git+ssh://git@github.com:lazd/karma-benchmark.git",
     "karma-benchmark-reporter": "~0.1.0",
     "handlebars": "~2.0.0-alpha.1",
     "dot": "~1.0.2",
