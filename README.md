@@ -1,11 +1,11 @@
-# elplato
+# ATML
 > An insanely fast client-side templating language
 
-elplato uses `createElement` statements to render templates in the browser up to **4 times faster** than [doT] and [Handlebars].
+ATML uses `createElement` statements to render templates in the browser up to **4 times faster** than [doT] and [Handlebars].
 
 ## Example
 
-elplato's syntax is simply HTML with a few special elements and attribute prefixes thrown in, with Mustache-like syntax for variable substitution.
+ATML's syntax is simply HTML with a few special elements and attribute prefixes thrown in, with Mustache-like syntax for variable substitution.
 
 ```html
 <div>
@@ -280,15 +280,15 @@ template.call(view, {
 
 ## Template precompilation
 
-As elplato parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled. You cannot compile elplato templates in the browser.
+As ATML parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled. You cannot compile ATML templates in the browser.
 
-Use [`grunt-elplato`][grunt-elplato] or [`gulp-elplato`][gulp-elplato] to precompile your templates.
+Use [`grunt-ATML`][grunt-ATML] or [`gulp-ATML`][gulp-ATML] to precompile your templates.
 
 Alternatively, yhe Node module exports a function that takes template code and options. It returns a function you can serialize and make available for client-side execution however you see fit.
 
 ### Precompilation
 ```js
-var compile = require('elplato');
+var compile = require('ATML');
 var fs = require('fs');
 
 var template = compile('<p>My template is {{adjective}}!</p>', { stripWhitespace: true });
@@ -328,7 +328,7 @@ Dump debug data, including the source file, parsed tree, and compiled function b
 
 ## Running the benchmarks
 
-elplato comes with a set of benchmarks that use karma-benchmark to test real-world browser performance.
+ATML comes with a set of benchmarks that use karma-benchmark to test real-world browser performance.
 
 ```
 npm install
@@ -338,7 +338,7 @@ grunt bench
 
 ## Running the test suite
 
-elplato is tested with mocha, chai, and jsdom.
+ATML is tested with mocha, chai, and jsdom.
 
 ```
 npm install
@@ -346,7 +346,7 @@ grunt test
 ```
 
 [Function.call]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-[grunt-elplato]: http://github.com/lazd/grunt-elplato
-[gulp-elplato]: http://github.com/lazd/gulp-elplato
+[grunt-ATML]: http://github.com/lazd/grunt-ATML
+[gulp-ATML]: http://github.com/lazd/gulp-ATML
 [doT]: http://olado.github.io/doT/index.html
 [Handlebars]: http://handlebarsjs.com/
