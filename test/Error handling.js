@@ -1,13 +1,14 @@
-var expect = require('chai').expect;
+var assert = require('chai').assert;
 var test = require('./lib/test.js');
 
-describe.skip('Error handling', function() {
+describe('Error handling', function() {
   it('should pass variables to helpers', function() {
     test({
+      throwOnRender: true,
       fixture: 'Undefined global',
-      done: function($) {
-        expect(false).to.be.true;
-        // expect($('body').text()).to.equal('Name');
+      done: function() {
+        // Should never be reached
+        assert.fail(null, null, 'Callback should not have been executed');
       }
     });
   });

@@ -20,7 +20,7 @@ function test(options) {
 
   var fixture = getFixture(options.fixture);
 
-  if (options.throw) {
+  if (options.throwOnCompile) {
     return expect(function() {
       compile(fixture, options.options);
     }).to.Throw(Error);
@@ -42,7 +42,17 @@ function test(options) {
 
       var document = global.document = window.document;
       var $ = global.$ = window.$;
-      var frag = template.call(options.obj, options.data);
+
+      var frag;
+      if (options.throwOnRender) {
+        return expect(function() {
+          frag = template.call(options.obj, options.data);
+        }).to.Throw(Error);
+      }
+      else {
+        frag = template.call(options.obj, options.data);
+      }
+
       document.body.appendChild(frag);
 
       if (options.options.debug) {

@@ -112,14 +112,14 @@ describe('Conditionals', function() {
   it('should throw for when else given without if', function() {
     test({
       fixture: 'If-else else without if',
-      throw: true
+      throwOnCompile: true
     });
   });
 
   it('should throw for multiple else on a given if', function() {
     test({
       fixture: 'If-else multiple else',
-      throw: true
+      throwOnCompile: true
     });
   });
 

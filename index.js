@@ -4,9 +4,6 @@ var parser = require('./lib/parser.js');
 
 var variableRE = /\{\{\s*(.*?)\s*\}\}/g;
 var blankRE = /^[\s]*$/;
-var parentDataRE = /parent\./g;
-var spaceSplitRE = /\s+/;
-var argSplitRE = /\s*,\s*/;
 var jsTagRE = /<js>/;
 
 var customTags = [
@@ -349,6 +346,7 @@ Compiler.prototype.globalStatementFromNode = function(node, defaultArgs) {
 
 Compiler.prototype.buildFunctionBody = function(root, parentName) {
   var text;
+  var statement;
   var $ = this.$;
   var isRoot = this.count === 0;
   var hasParent = !!parentName;
@@ -366,13 +364,13 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
       // @todo handle block argument
       var blockArgument = this.makeVariableStatement($(el).text());
 
-      var statement = this.globalStatement(Object.keys(el.attribs).join(''), blockArgument);
+      statement = this.globalStatement(Object.keys(el.attribs).join(''), blockArgument);
 
       // Call the helper in the current context, passing processed text content
       this.pushStatement(parentName+'.appendChild(document.createTextNode('+statement+'));');
     }
     else if (el.name === 'partial') {
-      var statement = this.globalStatement(Object.keys(el.attribs).join(''), 'data_'+this.nestCount);
+      statement = this.globalStatement(Object.keys(el.attribs).join(''), 'data_'+this.nestCount);
 
       // Call the partial in the current context
       // Add the returned document fragment
@@ -430,10 +428,17 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
       var propName;
 
       if (attributeKeys.length) {
-        var pair = attributeKeys.join('').split(',');
-        propName = pair[0];
-        this.iteratorNames.push(pair[1]);
-        hasNamedIterator = true;
+        var foreachArg = attributeKeys.join('');
+
+        var matches = foreachArg.match(/(.*),([\w\d_$]+)$/);
+        if (matches) {
+          propName = matches[1];
+          this.iteratorNames.push(matches[2]);
+          hasNamedIterator = true;
+        }
+        else {
+          propName = foreachArg;
+        }
       }
 
       // Get the iterated object's name

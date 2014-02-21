@@ -27,6 +27,33 @@ describe('Foreach loops', function() {
     });
   });
 
+  it('should set allow iterator over return value of method invocation', function() {
+    test({
+      fixture: 'For each on return value of method invocation',
+      data: {
+        itemToSkip: 'Item 2',
+        items:[
+          'Item 1',
+          'Item 2',
+          'Item 3'
+        ]
+      },
+      obj: {
+        getItems: function(items, itemToSkip) {
+          items = items.filter(function(item) {
+            return item !== itemToSkip;
+          });
+
+          return items;
+        }
+      },
+      done: function($) {
+        expect($('li')[0].textContent).to.equal('0: Item 1');
+        expect($('li')[1].textContent).to.equal('1: Item 3');
+      }
+    });
+  });
+
   it('should set reference parent data with parent', function() {
     test({
       fixture: 'For each with parent reference',
