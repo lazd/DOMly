@@ -3,21 +3,22 @@
 
 ATML uses `createElement` statements to render templates in the browser up to **4 times faster** than [doT] and [Handlebars].
 
+
 ## Example
 
-ATML's syntax is simply HTML with a few special elements and attribute prefixes thrown in, with Mustache-like syntax for variable substitution.
+ATML's syntax is simply HTML with a few special elements and attribute prefixes thrown in, with Mustache-like syntax for variable substitution and method invocation.
 
 ```html
 <div>
-  <h1>Category: {{category}}</h1>
-    <if items.length>
+  <h1>Category: {{data.category}}</h1>
+    <if data.items.length>
       <ul>
-        <foreach items>
+        <foreach data.items>
           <li>
-            <h2>{{parent.category}}: {{name}}</h2>
-            <h3 if-sale='class="sale"'>{{price}}</h3>
-            <h3>{{stockCount}} in stock</h3>
-            <button unless-stockCount='disabled="disabled"'>Buy now</button>
+            <h2>{{parent.category}}: {{data.name}}</h2>
+            <h3 if-data.sale='class="sale"'>{{data.rice}}</h3>
+            <h3>{{formatCount(data.stockCount)}} in stock</h3>
+            <button unless-data.stockCount='disabled="disabled"'>Buy now</button>
           </li>
         </foreach>
       </ul>
@@ -27,7 +28,7 @@ ATML's syntax is simply HTML with a few special elements and attribute prefixes 
 </div>
 ```
 
-Calling a compiled template returns the HTML root element, if the template has a single element.
+Calling a compiled template returns the the root [Node] or [DocumentFragment], ready to be added to the DOM:
 
 ```js
 var div = template({
@@ -42,78 +43,196 @@ var div = template({
   ]
 });
 
+// Add the node to the DOM
 document.body.appendChild(div);
 ```
 
-## Syntax
 
-### `{{variable}}`
+## Available variables
 
-Variables can be substituted using double braces. HTML in variables is always escaped.
+### `data`
 
-```html
-<button class="{{class}}">{{text}}</button>
+`data` refers to the current data context as passed to the template. If within a `<foreach>` or `<forin>` loop, `data` refers to the current item.
+
+### `parent`
+
+When within a `<foreach>` or `<forin>` loop, `parent` refers to the data context outside of the loop. This can be chained, resulting in `parent.parent` referring to the data context outside of two nested loops.
+
+### `this`
+
+`this` refers to the value of `this` when executing the template function.
+
+The initial value of `this` when executing a template is whatever is to the left of the dot:
+
+```
+var obj = {
+  template: template
+};
+
+// this is obj
+obj.template();
 ```
 
-### `<if var>`
+You can change the value of `this` when executing template function by using [`Function.prototype.call`](Function.prototype.call) or [`Function.prototype.bind`](Function.prototype.bind):
 
-Evaluate the contained HTML if `var` is truthy.
+```js
+var obj = {
+  method: function() {
+    return 'Available as this.method()';
+  },
+  property: 'Available as this.property'
+};
+
+var templateData = {
+  property: 'Available as this.data'
+};
+
+// Render the template with obj as this and templateData as data
+var fragment = template.call(obj, data);
+```
+
+
+### `someGlobalVariable`
+
+All global variables and functions are available within templates.
+
+As properties of the data context and `this` object must be preceded by `data` and `this` respectively, there is no possibility of accidentally using a global variable.
+
+
+### `someIterator`
+
+An iterator variable, as declared when using `<foreach>` or `<forin>` with a named iterator.
+
+Iterators supersede global variables, so you will not be able to access any globals with the same name as an iterator used anywhere in the template.
+
+### Statements
+
+Statements take the same form as JavaScript statements, except spaces are not allowed.
+
+Note: Expressions are not currently supported within statements. As such, statements cannot contain `&&`, `||`, `+`, etc.
+
+
+### `variable`
+
+Variables can be used as the return value of a statement.
+
+* `data` - Substitute the current data context directly
+* `data.myProperty` - Substitute a property of the current data context
+* `this.myProperty` - Substitute with a property of this
+* `myGlobalVariable` - Substitute a global variable
+* `myGlobalObject.myProperty` - Substitute a property of a globally accessible object
+
+
+### `method()`
+
+Methods can be invoked as part of a statement.
+
+* `data.myMethod()` - Invoke a method of the current data context
+* `parent.myMethod()` - Invoke a method of the parent data context
+* `this.myMethod()` - Invoke a method on this
+* `myGlobalFunction()` - Invoke a globally accessible function
+* `myGlobalObject.myMethod()` - Invoke a method of a globally accessible object
+
+Invoked methods can be passed any arbitrary arguments. For instance:
+
+```
+myMethod(data.myDataProp,parent.myParentProp,this.myScopeProp,myGlobalVariable,myGlobalObject.myProp)
+```
+
+The above statement would invoke `myMethod` with the following:
+
+* The value of the current data context's `myDateProp` property
+* The value of the parent data context's `myParentProp` property
+* The value of `this`'s `myScopeProp` property
+* The value of the global variable `myGlobalVariable`
+* The value of the `myProp` property of the globally accessible object, `myGlobalObject`
+
+
+## Substitutions
+
+### `{{statement}}`
+
+Substitute the return value of `statement` into the DOM as text.
+
+Substitutions can be made in attribute values or text content:
 
 ```html
-<if enabled>
-  It's enabled!
+<button class="{{data.className}}">{{data.label}}</button>
+```
+
+Substitutions are always escaped. **It is impossible to inject HTML.**
+
+
+## Syntax
+
+
+### `<if statement>`
+
+Include the contained elements if `statement` is truthy.
+
+#### If the value of a data context property is truthy
+
+In this example, we simply test the current data context's `enabled` property for truthiness, adding the `<p>` to the DOM if it's truthy.
+
+```html
+<if data.enabled>
+  <p>{{data.name}} is enabled!</p>
 </if>
 ```
 
-### `<unless var>`
+#### If the return value of a method is truthy
 
-Evaluate the contained HTML if `var` is falsey.
+In this example, the method `passesTest` is a method of `this`. We'll pass the current data context to it, and, if `passesTest` returns a truthy value, we'll add the `<p>` to the DOM.
 
 ```html
-<unless enabled>
-  It's disabled!
-</unless>
+<if this.passesTest(data)>
+  <p>{{data.name}} passes the test!</p>
+</if>
 ```
+
+
+### `<unless statement>`
+
+The opposite of `<if statement>`.
+
 
 ### `<else>`
 
-Used with `<if>` and `<unless>`, evaluated if the opposite is true.
+Used with `<if>` and `<unless>`, evaluated if the statement is falsey.
 
 ```html
-<if enabled>
-  It's enabled!
+<if data.enabled>
+  <p>{{data.name}} is enabled!</p>
 <else>
-  It's disabled!
+  <p>{{data.name}} is disabled.</p>
 </if>
 ```
 
-### `<foreach array[,iterator]>`
 
-Iterate over the items in `array`. `this` becomes the value and its properties can be accessed without dot notation.
+### `<foreach statement[,iterator]>`
 
-If `iterator` is provided, `{{iterator}}` will be set to the index of the current item.
+Iterate over the items the of the array returned by `statement`. The item is available as `data`.
+
+If `iterator` is provided, the index of the current item will be available as `{{iterator}}` for substitution and `iterator` for method invocation.
 
 #### Data
 ```json
 {
-  "name": "Spicy Steak Tacos",
   "tags": ["hot", "fresh", "new"]
 }
 ```
 
 #### Template
 ```html
-<h1>{{name}}</h1>
 <ul>
-  <foreach tags,num>
-    <li>{{num}}. {{this}}</li>
+  <foreach data.tags,tagNumber>
+    <li>{{tagNumber}}. {{data}}</li>
   </foreach>
 </ul>
 ```
 
 #### Output
 ```html
-<h1>Item</h1>
 <ul>
   <li>0. hot</li>
   <li>1. fresh</li>
@@ -121,15 +240,17 @@ If `iterator` is provided, `{{iterator}}` will be set to the index of the curren
 </ul>
 ```
 
-### `<forin object[,prop]>`
 
-Iterate over the properties of `object`. `this` becomes the value and its properties can be accessed without dot notation.
+### `<forin statement[,prop]>`
+
+Iterate over the properties of `object`. The value is available as `data`.
+
+If `prop` is provided, the property name will be available as `{{prop}}` for substitution and `prop` for method invocation.
 
 
 #### Data
 ```json
 {
-  "name": "Spicy Steak Tacos",
   "stats": {
     "Spice level": "hot",
     "Vegetarian": "No",
@@ -138,19 +259,19 @@ Iterate over the properties of `object`. `this` becomes the value and its proper
 }
 ```
 
+
 #### Template
 ```html
-<h1>{{name}}</h1>
 <ul>
-  <forin stats,stat>
-    <li>{{stat}}: {{this}}</li>
+  <forin data.stats,stat>
+    <li>{{stat}}: {{data}}</li>
   </forin>
 </ul>
 ```
 
+
 #### Output
 ```html
-<h1>Taco</h1>
 <ul>
   <li>Spice level: Hot</li>
   <li>Vegetarian: No</li>
@@ -158,42 +279,42 @@ Iterate over the properties of `object`. `this` becomes the value and its proper
 </ul>
 ```
 
-If `prop` is provided, `{{prop}}` will be set to the property name.
 
-### `<div if-var='attr="value"'>`
+### `<div if-statement='attr="value"'>`
 
-Conditionally sets the `attr` attribute to `value` if `var` is truthy.
-
-Use space to separate multiple attributes.
-
-```html
-<button if-disabled='disabled="disabled" class="disabled"'>Buy</button>
-```
-
-### `<div unless-var='attr="value"'>`
-
-Conditionally  sets the `attr` attribute to `value` attributes if `var` is falsey.
+Conditionally sets the `attr` attribute to `value` if the return value of `statement` is truthy.
 
 Use space to separate multiple attributes.
 
 ```html
-<button unless-disabled='class="enabled"'>Buy</button>
+<button if-data.disabled='disabled="disabled" class="disabled"'>Buy</button>
 ```
-### `{{>SomeNameSpace.someFunction[ arg1 arg2]}}`
 
-Call `SomeNameSpace.someFunction`, passing `arg1` and `arg2`. The function must return a string which will be inserted as text content.
+Attributes can contain substitutions as well:
+
+```html
+<button if-data.customAttr='{{customAttr.name}}={{customAttr.value}}'>Buy</button>
+```
+
+
+### `<div unless-statement='attr="value"'>`
+
+The opposite of `<div if-statement='attr="value"'>`.
+
+
+### `<partial SomeNameSpace.someFunction(statement,statement)><partial>`
+
+Call `SomeNameSpace.someFunction`, passing `arg1` and `arg2`. The function must return a [DocumentFragment] or [Node].
 
 If no arguments are passed, the current data context will be passed.
 
-### `<partial name="SomeNameSpace.someFunction"[ args="arg1, arg2"]>`
 
-Call `SomeNameSpace.someFunction`, passing `arg1` and `arg2`. The function must return an array of HTMLElements.
-
-If no arguments are passed, the current data context will be passed.
-
-### `<helper name="SomeNameSpace.someFunction">{{someProp}} and text</helper>`
+### `<helper SomeNameSpace.someFunction(statement,statement)>{{statement}} and text</helper>`
 
 Call `SomeNameSpace.someFunction`, passing the evaluated string. The function must return a string which will be inserted as text content.
+
+Text content and statements inside of the node will be evaluated and passed as the last argument to the helper.
+
 
 ### `<js>`
 
@@ -205,93 +326,69 @@ var i = 10;
 while (i-- > 0) {
   data.count = i;
 </js>
-  <span>{{count}}</span>
+  <span>{{data.count}}</span>
 <js>
 }
 </js>
 ```
 
+
 ### `handle="handleName"`
 
 If the `handle` attribute is present on any elements in the template, a reference to the element will be assigned as `this.handleName`.
 
+Statements can also be used within handle names.
+
 #### Template
+
 ```html
-<h1 handle="heading">{{heading}}</h1>
-<p handle="content">{{content}}</h1>
+<ul handle="list">
+  <foreach data.tags,itemNum>
+    <li handle="item_{{itemNum}}">{{data}}</li>
+  </foreach>
+</ul>
 ```
 
 #### Usage
 ```js
-var obj = {
-  template: template
+// An object we'll use as the value of this
+var obj = {};
+
+// Data for the template
+var templateData = {
+  name: 'MainList',
+  tags: [
+    'Tag 1',
+    'Tag 2'
+  ]
 };
 
-// Since obj is to the left of the dot, this === obj
-obj.template({
-  heading: 'This is the heading',
-  content: 'This is the content'
-});
+// Render the template with obj as this and templateData as data
+template.call(obj, templateData);
 
-// Since handle was present, we have references to the elements
-obj.heading.textContent = 'A new heading';
-obj.content.textContent = 'Some new content';
+// For handle names that start with $, references to the jQuery object are available
+view.item_0.innerHTML = 'A new Tag 1';
+view.item_1.innerHTML = 'A new Tag 2';
 ```
 
-If a handle name begins with `$`, a jQuery object will be stored:
-
-#### Template
-```html
-<h1 handle="$heading">{{heading}}</h1>
-<p handle="$content">{{content}}</h1>
-```
-
-#### Usage
-```js
-var view = {
-  template: template
-};
-
-view.template({
-  heading: 'This is the heading',
-  content: 'This is the content'
-});
-
-// Since the handle name started with $, we have references to the jQuery objects
-view.$heading.text('A new heading');
-view.$content.text('Some new content');
-
-// Plain HTMLElements are still available
-view.heading.textContent = 'A new heading';
-view.content.textContent = 'Some new content';
-```
-
-Of course, you can always use [`Function.call`][Function.call] to change the context of execution and get the same result:
-
-```js
-var view = {};
-
-template.call(view, {
-  heading: 'This is the heading',
-  content: 'This is the content'
-});
-```
+If a handle name begins with `$`, such as `$handle`, a jQuery object will be stored as `$handle` and the Node itself will be stored as `handle`. This is accomplished by passing the node to `$`, so you can use your own `$` function instead of jQuery.
 
 
 ## Template precompilation
 
-As ATML parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled. You cannot compile ATML templates in the browser.
+ATML parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled. **You cannot compile ATML templates in the browser.**
 
 Use [`grunt-ATML`][grunt-ATML] or [`gulp-ATML`][gulp-ATML] to precompile your templates.
 
-Alternatively, yhe Node module exports a function that takes template code and options. It returns a function you can serialize and make available for client-side execution however you see fit.
+Alternatively, the Node module exports a function that takes template code and options. It returns a function you can serialize and make available for client-side execution however you see fit.
 
-### Precompilation
+
+### Precompilation with the `atml` module
 ```js
-var compile = require('ATML');
+var compile = require('atml');
 var fs = require('fs');
 
-var template = compile('<p>My template is {{adjective}}!</p>', { stripWhitespace: true });
+var template = compile('<p>My template is {{data.adjective}}!</p>', { stripWhitespace: true });
 
 fs.writeFileSync('template.js', 'var template = '+template.toString()+';');
 ```
@@ -345,7 +442,10 @@ npm install
 grunt test
 ```
 
-[Function.call]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
+[Node]: https://developer.mozilla.org/en-US/docs/Web/API/Node
+[DocumentFragment]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment
+[Function.prototype.call]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
+[Function.prototype.bind]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
 [grunt-ATML]: http://github.com/lazd/grunt-ATML
 [gulp-ATML]: http://github.com/lazd/gulp-ATML
 [doT]: http://olado.github.io/doT/index.html
