@@ -124,6 +124,7 @@ function Compiler(options) {
 Compiler.prototype.createElement = function(elName, tag, elHandle) {
   var statement = 'var '+elName+' = ';
   var handleUsesDollar;
+  var elHandleStatementBare;
 
   if (elHandle) {
     handleUsesDollar = elHandle.charAt(0) === '$';
