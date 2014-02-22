@@ -8,6 +8,7 @@ var jsTagRE = /<js>/;
 
 var customTags = [
   'if',
+  'unless',
   'else',
   'foreach',
   'partial',
