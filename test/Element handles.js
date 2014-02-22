@@ -30,4 +30,27 @@ describe('Element handles', function() {
       },
     });
   });
+
+  it('should support statements in handles', function() {
+    var obj = {};
+    test({
+      fixture: 'For each with handles',
+      obj: obj,
+      data: {
+        name: 'MainList',
+        tags: [
+          'Tag 1',
+          'Tag 2'
+        ]
+      },
+      done: function($) {
+        expect($('ul').get(0)).to.equal(obj.ul_MainList);
+        expect($('li').get(0)).to.equal(obj.li_0);
+        expect($('li').get(1)).to.equal(obj.li_1);
+        expect(obj.$ul_MainList.is($('ul').get(0))).to.be.true;
+        expect(obj.$li_0.is($('li').get(0))).to.be.true;
+        expect(obj.$li_1.is($('li').get(1))).to.be.true;
+      },
+    });
+  });
 });

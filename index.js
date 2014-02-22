@@ -71,13 +71,8 @@ function getVariableArray(string) {
       array.push(text);
     }
 
-    if (p1.slice(0,1) === '>') {
-      array.push({ type: 'helper', statement: p1.slice(1) });
-    }
-    else {
-      // Add variables
-      array.push({ type: 'variable', statement: p1 });
-    }
+    // Add variables
+    array.push({ type: 'statement', statement: p1 });
 
     lastOffset = offset + match.length;
 
@@ -128,17 +123,16 @@ function Compiler(options) {
 Compiler.prototype.createElement = function(elName, tag, elHandle) {
   var statement = 'var '+elName+' = ';
   var handleUsesDollar;
-  var elHandleBare;
 
   if (elHandle) {
     handleUsesDollar = elHandle.charAt(0) === '$';
-    elHandleBare = handleUsesDollar ? elHandle.slice(1) : elHandle;
-    statement += 'this['+safe(elHandleBare)+']'+' = ';
+    elHandleStatementBare = this.makeVariableStatement(handleUsesDollar ? elHandle.slice(1) : elHandle);
+    statement += 'this['+elHandleStatementBare+']'+' = ';
   }
   statement += 'document.createElement('+safe(tag)+');';
 
   if (elHandle && handleUsesDollar) {
-    statement += '\nthis['+safe(elHandle)+'] = $('+elName+');';
+    statement += '\nthis["$"+'+elHandleStatementBare+'] = $('+elName+');';
   }
 
   this.pushStatement(statement);
@@ -209,14 +203,9 @@ Compiler.prototype.makeVariableStatement = function(string) {
       // Include text directly
       statement += safe(piece);
     }
-    else {
-      if (piece.type === 'variable') {
-        // Substitute variables
-        statement += this.data(piece.statement);
-      }
-      else if (piece.type === 'helper') {
-        statement += this.globalStatement(piece.statement);
-      }
+    else if (piece.type === 'statement') {
+      // Substitute variables
+      statement += this.data(piece.statement);
     }
   }
 
