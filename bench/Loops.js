@@ -29,6 +29,30 @@ suite('Loops', function() {
     }));
   }, options);
 
+  /*
+  window.htmlbars_templates = {
+    TagList: HTMLBars.compile(__html__['bench/fixtures/hbs/TagList.hbs'])
+  };
+
+  benchmark('HTMLBars', function() {
+    var result = document.getElementById('result');
+    while (result.firstChild) {
+      result.removeChild(result.firstChild);
+    }
+
+    result.appendChild(htmlbars_templates.TagList({
+      name: 'Category',
+      tags: [
+        'Tag 1',
+        'Tag 2',
+        'Tag 3',
+        'Tag 4',
+        'Tag 5',
+      ]
+    }, { helpers: HTMLBars.helpers }));
+  }, options);
+  */
+
   benchmark('Handlebars', function() {
     var result = document.getElementById('result');
     result.innerHTML = hbs_templates.TagList({

@@ -7,6 +7,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'bench/fixtures/hbs/*.hbs',
+      'vendor/htmlbars-0.1.0.js',
       'bower_components/handlebars/handlebars.runtime.js',
       'bower_components/lodash/dist/lodash.js',
       'build/templates.js',
@@ -62,7 +64,8 @@ module.exports = function(config) {
       // This should not include tests or libraries
       // These files will be instrumented by Istanbu
       'index.js': ['coverage'],
-      '**/*.html': ['html2js']
+      '**/*.html': ['html2js'],
+      '**/*.hbs': ['html2js']
     },
 
     // Configure the reporter
