@@ -1,7 +1,7 @@
 # ATML
 > An insanely fast client-side templating language
 
-ATML uses `createElement` statements to render templates in the browser up to **4 times faster** than [doT] and [Handlebars].
+ATML uses `createElement` statements to render templates in the browser up to **7 times faster** than [doT] and [Handlebars].
 
 
 ## Example
@@ -385,13 +385,13 @@ Alternatively, the Node module exports a function that takes template code and o
 
 ### Precompilation with the `atml` module
 ```js
-var compile = require('atml');
+var atml = require('atml');
 var fs = require('fs');
 
-var template = compile('<p>My template is {{data.adjective}}!</p>', { stripWhitespace: true });
+// Precompile returns a string
+var template = atml.precompile('<p>My template is {{data.adjective}}!</p>', { stripWhitespace: true });
 
 fs.writeFileSync('template.js', 'var template = '+template.toString()+';');
-```
 
 ### Usage
 ```html
@@ -401,11 +401,9 @@ fs.writeFileSync('template.js', 'var template = '+template.toString()+';');
 </script>
 ```
 
-
 ## Compiler options
 
 The compiler takes the following options:
-
 
 #### stripWhitespace
 Type: `Boolean`  
@@ -414,7 +412,6 @@ Default: `false`
 If `true`, meaningless whitespace will be stripped. This provides a large performance boost as less meaningless `createTextNode` calls are created.
 
 **Warning:** Meaningful whitespace, such as space between inline tags, will be preserved. However, if your CSS gives `display: inline` to block elements, whitespace between those elements will still be stripped.
-
 
 #### debug
 Type: `Boolean`  

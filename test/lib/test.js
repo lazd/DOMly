@@ -1,7 +1,7 @@
 var path = require('path');
 var fs = require('fs');
 var expect = require('chai').expect;
-var compile = require('../../index.js');
+var compile = require('../../index.js').compile;
 var getFixture = require('./getFixture.js');
 var jsdom = require('jsdom');
 var jquery = fs.readFileSync(path.join(__dirname, '..', '..', 'bower_components', 'jquery', 'dist', 'jquery.js'), 'utf-8');
