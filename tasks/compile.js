@@ -1,10 +1,11 @@
 var path = require('path');
-var compile = require('../index.js');
+var precompile = require('../index.js').precompile;
 
 module.exports = function(grunt) {
-  grunt.registerMultiTask('compile', 'Compile templates to createElement statements.', function() {
+  grunt.registerMultiTask('compile', 'Precompile ATML templates.', function() {
     var options = this.options({
-      namespace: 'templates'
+      namespace: 'templates',
+      asString: true
     });
 
     this.files.forEach(function(file) {
@@ -21,7 +22,7 @@ module.exports = function(grunt) {
         var contents = grunt.file.read(filepath);
 
         // Compile
-        var template = compile(contents, options);
+        var template = precompile(contents, options);
 
         var name = path.basename(filepath, '.html');
 

@@ -5,6 +5,7 @@ var parser = require('./lib/parser.js');
 var variableRE = /\{\{\s*(.*?)\s*\}\}/g;
 var blankRE = /^[\s]*$/;
 var jsTagRE = /<js>/;
+var conditionalAttrRE = /^(if-|unless-)(.+)/;
 
 var customTags = [
   'if',
@@ -20,8 +21,45 @@ var customTags = [
 /*
 Check if an htmlparser2 node is a real HTML element
 */
-function isRealElement(root) {
-  return root.type === 'tag' && !~customTags.indexOf(root.name);
+function isRealElement(node) {
+  return node.type === 'tag' && !~customTags.indexOf(node.name);
+}
+
+function hasConditionAttributesOrHandles(node) {
+  var attrs = node.attribs;
+
+  for (var attr in attrs) {
+    if (attr.match(conditionalAttrRE) || attr === 'handle') {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function hasSubstitutions(node) {
+  if (node.type === 'text') {
+    return !!node.data.match(variableRE);
+  }
+
+  return false;
+}
+
+function isFragCandidate(node) {
+  if (~customTags.indexOf(node.name) || hasConditionAttributesOrHandles(node) || hasSubstitutions(node)) {
+    return false;
+  }
+
+  if (node.children) {
+    for (var i = 0; i < node.children.length; i++) {
+      var child = node.children[i];
+      if (!isFragCandidate(child)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 function indent(spaces) {
@@ -121,7 +159,9 @@ function Compiler(options) {
   this.options = options || {};
 }
 
-Compiler.prototype.createElement = function(elName, tag, elHandle) {
+Compiler.prototype.createElement = function(elName, el) {
+  var tag = el.name;
+  var elHandle = el.attribs.handle;
   var statement = 'var '+elName+' = ';
   var handleUsesDollar;
   var elHandleStatementBare;
@@ -131,6 +171,7 @@ Compiler.prototype.createElement = function(elName, tag, elHandle) {
     elHandleStatementBare = this.makeVariableStatement(handleUsesDollar ? elHandle.slice(1) : elHandle);
     statement += 'this['+elHandleStatementBare+']'+' = ';
   }
+
   statement += 'document.createElement('+safe(tag)+');';
 
   if (elHandle && handleUsesDollar) {
@@ -139,8 +180,6 @@ Compiler.prototype.createElement = function(elName, tag, elHandle) {
 
   this.pushStatement(statement);
 };
-
-var conditionalAttrRE = /(if-|unless-)(.+)/;
 
 Compiler.prototype.setAttribute = function(elName, attr, value) {
   var attrs = [];
@@ -481,7 +520,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         this.createTextNode(elName, text);
       }
       else {
-        this.createElement(elName, el.name, el.attribs.handle);
+        this.createElement(elName, el);
 
         var attrs = el.attribs;
         for (var attr in attrs) {
@@ -525,7 +564,7 @@ Compiler.prototype.pushStatement = function(statement) {
   this.statements.push(statement);
 };
 
-Compiler.prototype.compile = function compile(html) {
+Compiler.prototype.precompile = function(html) {
   // Load the HTML inside of a root element
   var $ = this.$ = cheerio.load('<div id="__template_root__">'+html+'</div>', {
     lowerCaseAttributeNames: false
@@ -545,6 +584,7 @@ Compiler.prototype.compile = function compile(html) {
   this.statements = [];
   this.nestCount = 0;
   this.indent = 1;
+  this.hasCachedFrags = false;
 
   if (root.children.length === 1 && isRealElement(root.children[0])) {
     // Use the root element
@@ -564,9 +604,12 @@ Compiler.prototype.compile = function compile(html) {
     // Tack a data declaration on so eval and foreach can use it
     this.pushStatement('var data = data_0;');
   }
-
   // Build function body
   this.buildFunctionBody(root);
+
+  if (this.options.debug) {
+    this.statements.unshift('console.log("Value of this:", this);');
+  }
 
   var functionBody = this.statements.join('\n');
 
@@ -575,12 +618,53 @@ Compiler.prototype.compile = function compile(html) {
     console.log(functionBody);
   }
 
+  // Compile first to check for errors
   var func = new Function('data_0', functionBody);
 
-  return func;
+  // Convert back to a string
+  functionBody = func.toString();
+
+  // Use cached document fragments if no subsitutions happen
+  if (isFragCandidate(root)) {
+    this.statements = [
+      '(function() {',
+      '  var frag;',
+      functionBody,
+      '  return function template() {',
+      '    if (!frag) {',
+      '      frag = anonymous();',
+      '    }',
+      '    return frag.cloneNode(true);',
+      '  };',
+      '}())'
+    ];
+
+    functionBody = this.statements.join('\n');
+  }
+  else {
+    functionBody = '('+functionBody+')';
+  }
+
+  if (this.options.debug) {
+    console.log('\nResult:');
+    console.log(functionBody);
+  }
+
+  return functionBody;
 };
 
-module.exports = function(html, options) {
-  var compiler = new Compiler(options);
-  return compiler.compile(html);
+Compiler.prototype.compile = function(html) {
+  // Use an indirect call to eval so code is evaluated in the global scope
+  return eval.call(null, this.precompile(html));
+};
+
+module.exports = {
+  compile: function(html, options) {
+    var compiler = new Compiler(options);
+    return compiler.compile(html);
+  },
+  precompile: function(html, options) {
+    var compiler = new Compiler(options);
+    return compiler.precompile(html);
+  }
 };
