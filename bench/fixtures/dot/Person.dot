@@ -1,6 +1,6 @@
 <section>
   <h1>{{=it.name}}</h1>
   <h2>{{=it.title}}</h2>
-  <article>{{=it.description}}</header>
+  <article>{{=it.description}}</article>
   <a href="mailto:{{=it.email}}">{{=it.email}}</a>
 </section>
