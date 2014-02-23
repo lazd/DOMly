@@ -25,6 +25,16 @@ function isRealElement(node) {
   return node.type === 'tag' && !~customTags.indexOf(node.name);
 }
 
+function doEval(code) {
+  try {
+    return eval.call(null, code);
+  } catch (err) {
+    // Log the template code
+    console.error(code);
+    throw err;
+  }
+}
+
 function hasConditionAttributesOrHandles(node) {
   var attrs = node.attribs;
 
@@ -659,7 +669,7 @@ Compiler.prototype.precompile = function(html) {
 
 Compiler.prototype.compile = function(html) {
   // Use an indirect call to eval so code is evaluated in the global scope
-  return eval.call(null, this.precompile(html));
+  return doEval(this.precompile(html));
 };
 
 module.exports = {
