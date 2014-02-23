@@ -11,7 +11,7 @@ suite('Loops', function() {
     ]
   };
 
-  benchmark('ct', function() {
+  benchmark('ATML', function() {
     var result = document.getElementById('result');
     while (result.firstChild) {
       result.removeChild(result.firstChild);
