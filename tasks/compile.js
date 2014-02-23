@@ -4,8 +4,7 @@ var precompile = require('../index.js').precompile;
 module.exports = function(grunt) {
   grunt.registerMultiTask('compile', 'Precompile ATML templates.', function() {
     var options = this.options({
-      namespace: 'templates',
-      asString: true
+      namespace: 'templates'
     });
 
     this.files.forEach(function(file) {
