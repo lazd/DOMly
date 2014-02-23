@@ -65,7 +65,7 @@ function isFragCandidate(node) {
 function indent(spaces) {
   var space = '';
   while (spaces > 0) {
-    space += '\t';
+    space += '  ';
     spaces--;
   }
   return space;
@@ -153,9 +153,7 @@ function usesVariables(string) {
 function Compiler(options) {
   this.data = this.data.bind(this);
   this.globalStatementFromNode = this.globalStatementFromNode.bind(this);
-  this.count = 0;
-  this.nestCount = 0;
-  this.iteratorNames = [];
+
   this.options = options || {};
 }
 
@@ -565,6 +563,14 @@ Compiler.prototype.pushStatement = function(statement) {
 };
 
 Compiler.prototype.precompile = function(html) {
+  // Reset vars
+  this.count = 0;
+  this.iteratorNames = [];
+  this.statements = [];
+  this.nestCount = 0;
+  this.indent = 1;
+  this.hasCachedFrags = false;
+
   // Load the HTML inside of a root element
   var $ = this.$ = cheerio.load('<div id="__template_root__">'+html+'</div>', {
     lowerCaseAttributeNames: false
@@ -578,13 +584,11 @@ Compiler.prototype.precompile = function(html) {
     prettyPrint(root);
   }
 
-  // Reset vars
-  this.mode = 'create';
-  this.count = 0;
-  this.statements = [];
-  this.nestCount = 0;
-  this.indent = 1;
-  this.hasCachedFrags = false;
+  var templateIsFragCandidate = isFragCandidate(root);
+
+  if (templateIsFragCandidate) {
+    this.indent = 2;
+  }
 
   if (root.children.length === 1 && isRealElement(root.children[0])) {
     // Use the root element
@@ -625,7 +629,7 @@ Compiler.prototype.precompile = function(html) {
   functionBody = func.toString();
 
   // Use cached document fragments if no subsitutions happen
-  if (isFragCandidate(root)) {
+  if (templateIsFragCandidate) {
     this.statements = [
       '(function() {',
       '  var frag;',
