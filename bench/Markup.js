@@ -5,7 +5,7 @@ suite('Markup', function() {
     Structure: HTMLBars.compile(__html__['bench/fixtures/hbs/Structure.hbs'])
   };
 
-  benchmark('ct', function() {
+  benchmark('ATML', function() {
     var result = document.getElementById('result');
     while (result.firstChild) {
       result.removeChild(result.firstChild);
