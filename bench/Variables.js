@@ -1,9 +1,8 @@
 suite('Variables', function() {
   var options = setup();
 
-  window.htmlbars_templates = {
-    Person: HTMLBars.compile(__html__['bench/fixtures/hbs/Person.hbs'])
-  };
+  window.htmlbars_templates = window.htmlbars_templates || {};
+  window.htmlbars_templates.Person = HTMLBars.compile(__html__['bench/fixtures/hbs/Person.hbs'])
 
   benchmark('ATML', function() {
     var result = document.getElementById('result');

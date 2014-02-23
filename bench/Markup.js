@@ -1,9 +1,8 @@
 suite('Markup', function() {
   var options = setup();
 
-  window.htmlbars_templates = {
-    Structure: HTMLBars.compile(__html__['bench/fixtures/hbs/Structure.hbs'])
-  };
+  window.htmlbars_templates = window.htmlbars_templates || {};
+  window.htmlbars_templates.Structure = HTMLBars.compile(__html__['bench/fixtures/hbs/Structure.hbs'])
 
   benchmark('ATML', function() {
     var result = document.getElementById('result');
