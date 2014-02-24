@@ -11,7 +11,7 @@ suite('Loops', function() {
     ]
   };
 
-  benchmark('ATML', function() {
+  benchmark('DOMly', function() {
     var result = document.getElementById('result');
     while (result.firstChild) {
       result.removeChild(result.firstChild);

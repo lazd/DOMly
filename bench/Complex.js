@@ -1,7 +1,7 @@
 suite('Complex', function() {
   var options = setup();
 
-  benchmark('ATML', function() {
+  benchmark('DOMly', function() {
     var result = document.getElementById('result');
     while (result.firstChild) {
       result.removeChild(result.firstChild);

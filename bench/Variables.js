@@ -4,7 +4,7 @@ suite('Variables', function() {
   window.htmlbars_templates = window.htmlbars_templates || {};
   window.htmlbars_templates.Person = HTMLBars.compile(__html__['bench/fixtures/hbs/Person.hbs'])
 
-  benchmark('ATML', function() {
+  benchmark('DOMly', function() {
     var result = document.getElementById('result');
     while (result.firstChild) {
       result.removeChild(result.firstChild);

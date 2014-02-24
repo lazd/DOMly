@@ -1,12 +1,14 @@
-# ATML
+# DOMly
 > An insanely fast client-side templating language
 
-ATML uses `createElement` statements to render templates in the browser up to **7 times faster** than [doT] and [Handlebars].
+DOMly uses `cloneNode` and `createElement` to render templates in the browser up to **7 times faster** than [doT] and [Handlebars].
+
+DOMly is named after [Dolly the sheep][Dolly], the first mammal to be cloned.
 
 
 ## Example
 
-ATML's syntax is simply HTML with a few special elements and attribute prefixes thrown in, with Mustache-like syntax for variable substitution and method invocation.
+DOMly's syntax is simply HTML with a few special elements and attribute prefixes thrown in, with Mustache-like syntax for variable substitution and method invocation.
 
 ```html
 <div>
@@ -376,20 +378,20 @@ If a handle name begins with `$`, such as `$handle`, a jQuery object will be sto
 
 ## Template precompilation
 
-ATML parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled. **You cannot compile ATML templates in the browser.**
+DOMly parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled. **You cannot compile DOMly templates in the browser.**
 
-Use [`grunt-ATML`][grunt-ATML] or [`gulp-ATML`][gulp-ATML] to precompile your templates.
+Use [`grunt-DOMly`][grunt-DOMly] or [`gulp-DOMly`][gulp-DOMly] to precompile your templates.
 
 Alternatively, the Node module exports a function that takes template code and options. It returns a function you can serialize and make available for client-side execution however you see fit.
 
 
-### Precompilation with the `atml` module
+### Precompilation with the `DOMly` module
 ```js
-var atml = require('atml');
+var DOMly = require('DOMly');
 var fs = require('fs');
 
 // Precompile returns a string
-var template = atml.precompile('<p>My template is {{data.adjective}}!</p>', { stripWhitespace: true });
+var template = DOMly.precompile('<p>My template is {{data.adjective}}!</p>', { stripWhitespace: true });
 
 fs.writeFileSync('template.js', 'var template = '+template.toString()+';');
 
@@ -422,7 +424,7 @@ Dump debug data, including the source file, parsed tree, and compiled function b
 
 ## Running the benchmarks
 
-ATML comes with a set of benchmarks that use karma-benchmark to test real-world browser performance.
+DOMly comes with a set of benchmarks that use karma-benchmark to test real-world browser performance.
 
 ```
 npm install
@@ -432,18 +434,26 @@ grunt bench
 
 ## Running the test suite
 
-ATML is tested with mocha, chai, and jsdom.
+DOMly is tested with mocha, chai, and jsdom.
 
 ```
 npm install
 grunt test
 ```
 
+
+## License
+
+DOMly is licensed MIT.
+
+
 [Node]: https://developer.mozilla.org/en-US/docs/Web/API/Node
 [DocumentFragment]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment
 [Function.prototype.call]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
 [Function.prototype.bind]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
-[grunt-ATML]: http://github.com/lazd/grunt-ATML
-[gulp-ATML]: http://github.com/lazd/gulp-ATML
+[grunt-DOMly]: http://github.com/lazd/grunt-DOMly
+[gulp-DOMly]: http://github.com/lazd/gulp-DOMly
 [doT]: http://olado.github.io/doT/index.html
 [Handlebars]: http://handlebarsjs.com/
+
+[Dolly]: http://en.wikipedia.org/wiki/Dolly_(sheep)

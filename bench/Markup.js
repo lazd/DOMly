@@ -4,7 +4,7 @@ suite('Markup', function() {
   window.htmlbars_templates = window.htmlbars_templates || {};
   window.htmlbars_templates.Structure = HTMLBars.compile(__html__['bench/fixtures/hbs/Structure.hbs'])
 
-  benchmark('ATML', function() {
+  benchmark('DOMly', function() {
     var result = document.getElementById('result');
     while (result.firstChild) {
       result.removeChild(result.firstChild);
