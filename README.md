@@ -1,5 +1,7 @@
-# DOMly
+# DOMly 
+<!--[![NPM version][npm-image]][npm-url] [![Build status][travis-image]][travis] [![Code coverage status][coveralls-image]][coveralls]-->
 > An insanely fast client-side templating language
+<img src="http://i.imgur.com/kWjdMgE.png" align="right" alt="DOMly logo">
 
 DOMly uses `cloneNode` and `createElement` to render templates in the browser up to **7 times faster** than [doT] and [Handlebars].
 
@@ -380,7 +382,7 @@ If a handle name begins with `$`, such as `$handle`, a jQuery object will be sto
 
 DOMly parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled. **You cannot compile DOMly templates in the browser.**
 
-Use [`grunt-DOMly`][grunt-DOMly] or [`gulp-DOMly`][gulp-DOMly] to precompile your templates.
+Use [`grunt-domly`][grunt-domly] or [`gulp-domly`][gulp-domly] to precompile your templates.
 
 Alternatively, the Node module exports a function that takes template code and options. It returns a function you can serialize and make available for client-side execution however you see fit.
 
@@ -451,9 +453,19 @@ DOMly is licensed MIT.
 [DocumentFragment]: https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment
 [Function.prototype.call]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
 [Function.prototype.bind]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
-[grunt-DOMly]: http://github.com/lazd/grunt-DOMly
-[gulp-DOMly]: http://github.com/lazd/gulp-DOMly
+[grunt-domly]: http://github.com/lazd/grunt-domly
+[gulp-domly]: http://github.com/lazd/gulp-domly
 [doT]: http://olado.github.io/doT/index.html
 [Handlebars]: http://handlebarsjs.com/
 
 [Dolly]: http://en.wikipedia.org/wiki/Dolly_(sheep)
+[Logo]: http://www.clker.com/clipart-schaap.html
+
+[coveralls]: https://coveralls.io/r/lazd/DOMly
+[coveralls-image]: https://coveralls.io/repos/lazd/DOMly/badge.png?branch=master
+
+[travis]: http://travis-ci.org/lazd/DOMly
+[travis-image]: https://secure.travis-ci.org/lazd/DOMly.png?branch=master
+
+[npm-url]: https://npmjs.org/package/domly
+[npm-image]: https://badge.fury.io/js/domly.png
