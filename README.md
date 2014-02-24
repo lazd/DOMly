@@ -1,6 +1,6 @@
 # DOMly 
 <!--[![NPM version][npm-image]][npm-url] [![Build status][travis-image]][travis] [![Code coverage status][coveralls-image]][coveralls]-->
-> An insanely fast client-side templating language
+> The fast template system that generates DOM nodes
 <img src="http://i.imgur.com/kWjdMgE.png" align="right" alt="DOMly logo">
 
 DOMly uses `cloneNode` and `createElement` to render templates in the browser up to **7 times faster** than [doT] and [Handlebars].
