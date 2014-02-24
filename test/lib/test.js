@@ -33,15 +33,26 @@ function test(options) {
     src: [jquery],
     done: function (errors, window) {
       var prop;
-      // Set globals
-      if (options.globals) {
-        for (prop in options.globals) {
-          global[prop] = options.globals[prop];
-        }
-      }
 
       var document = global.document = window.document;
       var $ = global.$ = window.$;
+
+      // Set globals
+      if (options.globals) {
+        for (prop in options.globals) {
+          // Execute the method and set the property to its result
+          if (prop.indexOf('_exec_') === 0 && typeof prop === 'function') {
+            options.globals[prop]();
+          }
+          else {
+            global[prop] = options.globals[prop];
+          }
+        }
+      }
+
+      if (options.exec) {
+        options.exec();
+      }
 
       var frag;
       if (options.throwOnRender) {

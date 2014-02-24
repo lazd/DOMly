@@ -49,6 +49,19 @@ describe('Block helpers', function() {
     });
   });
 
+  it('should support non-function helpers', function() {
+    test({
+      fixture: 'Helper with non-function',
+      exec: function() {
+        global.myHelper = 'Some text!'
+      },
+      done: function($) {
+        delete global.myHelper;
+        expect($('body').text()).to.equal('Some text!');
+      }
+    });
+  });
+
   it('should be passed a block in addition to arguments', function() {
     test({
       fixture: 'Helper with block and args',

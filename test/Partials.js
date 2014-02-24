@@ -19,6 +19,21 @@ describe('Partials', function() {
     });
   });
 
+  it('should support non-function partials', function() {
+    var data = { info: { name: 'The Name', description: 'The description.' } };
+    test({
+      fixture: 'Partial with non-function',
+      data: data,
+      exec: function() {
+        var partial = global.myPartial = document.createElement('article');
+        partial.textContent = "I'm a teapot!";
+      },
+      done: function($) {
+        expect($('article').text()).to.equal("I'm a teapot!");
+      }
+    });
+  });
+
   it('should pass arguments to partials', function() {
     var data = { info: { name: 'The Name', description: 'The description.' } };
     test({

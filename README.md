@@ -306,18 +306,18 @@ Attributes can contain substitutions as well:
 The opposite of `<div if-statement='attr="value"'>`.
 
 
-### `<partial SomeNameSpace.someFunction(statement)><partial>`
+### `<partial statement><partial>`
 
-Call `SomeNameSpace.someFunction` and insert the returned [DocumentFragment] or [Node] into the DOM.
+Insert the returned [DocumentFragment] or [Node] into the DOM.
 
 If no arguments are passed, the current data context will be passed.
 
 
-### `<helper SomeNameSpace.someFunction(statement)>{{statement}} text</helper>`
+### `<helper statement>{{statement}} text</helper>`
 
-Call `SomeNameSpace.someFunction` and insert the returned string as text content.
+Insert the returned string as text content.
 
-Text content and statements inside of the node will be evaluated and passed as the last argument to the helper.
+If `statement` is a function call, the text content inside of the `<helper> tag will be evaluated and passed as the last argument.
 
 
 ### `<js>`
@@ -414,8 +414,10 @@ Dump debug data, including the source file, parsed tree, and compiled function b
 var domly = require('domly');
 var fs = require('fs');
 
-// Precompile returns a string
-var template = domly.precompile('<p>My template is {{data.adjective}}!</p>', { stripWhitespace: true });
+// Precompile returns a string of JS code
+var template = domly.precompile('<p>My template is {{data.adjective}}!</p>', {
+  stripWhitespace: true // Strip whitespace for better performance
+});
 
 fs.writeFileSync('template.js', 'var awesomeTemplate = '+template.toString()+';');
 ```
