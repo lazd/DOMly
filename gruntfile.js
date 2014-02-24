@@ -83,7 +83,7 @@ module.exports = function(grunt) {
         namespace: 'dot_templates'
       },
       templates: {
-        src: 'bench/fixtures/dot/*.dot',
+        src: 'bench/fixtures/dot/*.html',
         dest: 'build/dot_templates.js',
       }
     },

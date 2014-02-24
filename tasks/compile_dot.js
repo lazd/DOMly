@@ -23,7 +23,7 @@ module.exports = function(grunt) {
         // Compile
         var template = compile(contents);
 
-        var name = path.basename(filepath, '.dot');
+        var name = path.basename(filepath, '.html');
 
         var output = 'this['+JSON.stringify(options.namespace)+']['+JSON.stringify(name)+'] = '+template.toString()+';\n';
 
