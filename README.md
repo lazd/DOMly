@@ -140,7 +140,7 @@ Methods can be invoked as part of a statement.
 Invoked methods can be passed any arbitrary arguments. For instance:
 
 ```
-myMethod(data.myDataProp,parent.myParentProp,this.myScopeProp,myGlobalVariable,myGlobalObject.myProp)
+myMethod(data.dataProp,parent.parentProp,this.thisProp,globalVariable,globalObject.prop)
 ```
 
 The above statement would invoke `myMethod` with the following:
@@ -306,16 +306,16 @@ Attributes can contain substitutions as well:
 The opposite of `<div if-statement='attr="value"'>`.
 
 
-### `<partial SomeNameSpace.someFunction(statement,statement)><partial>`
+### `<partial SomeNameSpace.someFunction(statement)><partial>`
 
-Call `SomeNameSpace.someFunction`, passing `arg1` and `arg2`. The function must return a [DocumentFragment] or [Node].
+Call `SomeNameSpace.someFunction` and insert the returned [DocumentFragment] or [Node] into the DOM.
 
 If no arguments are passed, the current data context will be passed.
 
 
-### `<helper SomeNameSpace.someFunction(statement,statement)>{{statement}} and text</helper>`
+### `<helper SomeNameSpace.someFunction(statement)>{{statement}} text</helper>`
 
-Call `SomeNameSpace.someFunction`, passing the evaluated string. The function must return a string which will be inserted as text content.
+Call `SomeNameSpace.someFunction` and insert the returned string as text content.
 
 Text content and statements inside of the node will be evaluated and passed as the last argument to the helper.
 
@@ -380,36 +380,22 @@ If a handle name begins with `$`, such as `$handle`, a jQuery object will be sto
 
 ## Template precompilation
 
-DOMly parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled. **You cannot compile DOMly templates in the browser.**
+DOMly parses HTML to generate `createElement` statements, and as such, it only makes sense if precompiled.
 
-Use [`grunt-domly`][grunt-domly] or [`gulp-domly`][gulp-domly] to precompile your templates.
+**You cannot compile DOMly templates in the browser.** Use [`grunt-domly`][grunt-domly] or [`gulp-domly`][gulp-domly] to precompile your templates.
 
-Alternatively, the Node module exports a function that takes template code and options. It returns a function you can serialize and make available for client-side execution however you see fit.
+Alternatively, the `domly` Node module can be used to precompile templates.
 
+### domly.precompile(template[, options])
 
-### Precompilation with the `DOMly` module
-```js
-var DOMly = require('DOMly');
-var fs = require('fs');
+Takes a template string and returns a string of JavaScript code.
 
-// Precompile returns a string
-var template = DOMly.precompile('<p>My template is {{data.adjective}}!</p>', { stripWhitespace: true });
+#### template
+Type: `String`
 
-fs.writeFileSync('template.js', 'var template = '+template.toString()+';');
+The template to compile.
 
-### Usage
-```html
-<script src="template.js"></script>
-<script>
-  document.body.appendChild(template({ adjective: 'awesome' }));
-</script>
-```
-
-## Compiler options
-
-The compiler takes the following options:
-
-#### stripWhitespace
+#### options.stripWhitespace
 Type: `Boolean`  
 Default: `false`
 
@@ -417,12 +403,30 @@ If `true`, meaningless whitespace will be stripped. This provides a large perfor
 
 **Warning:** Meaningful whitespace, such as space between inline tags, will be preserved. However, if your CSS gives `display: inline` to block elements, whitespace between those elements will still be stripped.
 
-#### debug
+#### options.debug
 Type: `Boolean`  
 Default: `false`
 
 Dump debug data, including the source file, parsed tree, and compiled function body.
 
+### Example
+```js
+var domly = require('domly');
+var fs = require('fs');
+
+// Precompile returns a string
+var template = domly.precompile('<p>My template is {{data.adjective}}!</p>', { stripWhitespace: true });
+
+fs.writeFileSync('template.js', 'var awesomeTemplate = '+template.toString()+';');
+```
+
+#### Usage
+```html
+<script src="template.js"></script>
+<script>
+  document.body.appendChild(awesomeTemplate({ adjective: 'awesome' }));
+</script>
+```
 
 ## Running the benchmarks
 
