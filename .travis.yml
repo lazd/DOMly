@@ -6,5 +6,5 @@ node_js:
 script: grunt test
 before_install:
   - 'npm install -g grunt-cli bower'
-install:
+before_script:
   - 'bower install'
