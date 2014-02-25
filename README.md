@@ -1,5 +1,4 @@
-# DOMly 
-<!--[![NPM version][npm-image]][npm-url] [![Build status][travis-image]][travis] [![Code coverage status][coveralls-image]][coveralls]-->
+# DOMly [![NPM version][npm-image]][npm-url] [![Build status][travis-image]][travis]
 > The fast template system that generates DOM nodes
 <img src="http://i.imgur.com/kWjdMgE.png" align="right" alt="DOMly logo">
 
