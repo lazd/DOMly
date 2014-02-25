@@ -18,6 +18,13 @@ var customTags = [
   'js'
 ];
 
+// Attributes that are more performant to set as properties
+var asProperties = {
+  'class': 'className',
+  'id': 'id',
+  'href': 'href'
+};
+
 /*
 Check if an htmlparser2 node is a real HTML element
 */
@@ -189,8 +196,14 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
   }
 
   for (var i = 0; i < attrs.length; i++) {
-    // Process both the attribute and the value to allow statements in either
-    this.pushStatement(elName+'.setAttribute('+this.makeVariableStatement(attrs[i].attr)+', '+this.makeVariableStatement(attrs[i].value)+');');
+    var asProperty = asProperties[attrs[i].attr];
+    if (asProperty) {
+      this.pushStatement(elName+'.'+asProperty+' = '+this.makeVariableStatement(attrs[i].value)+';');
+    }
+    else {
+      // Process both the attribute and the value to allow statements in either
+      this.pushStatement(elName+'.setAttribute('+this.makeVariableStatement(attrs[i].attr)+', '+this.makeVariableStatement(attrs[i].value)+');');
+    }
   }
 
   if (conditionalAttrMatch) {
