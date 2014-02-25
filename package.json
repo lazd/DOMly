@@ -1,6 +1,6 @@
 {
   "name": "domly",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A template system that generates DOM",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "url": "git://github.com/lazd/domly.git"
   },
   "author": "Larry Davis <lazdnet@gmail.com>",
-  "license": "BSD-2-Clause",
+  "license": "MIT",
   "dependencies": {
     "cheerio": "~0.13.1",
     "jison": "~0.4.13"
