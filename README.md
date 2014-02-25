@@ -436,13 +436,14 @@ DOMly comes with a set of benchmarks that use karma-benchmark to test real-world
 
 ```
 npm install
+bower install
 grunt bench
 ```
 
 
 ## Running the test suite
 
-DOMly is tested with mocha, chai, and jsdom.
+DOMly is tested with mocha, chai, sinon, and jsdom.
 
 ```
 npm install
