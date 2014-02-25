@@ -29,6 +29,7 @@ describe('Partials', function() {
         partial.textContent = "I'm a teapot!";
       },
       done: function($) {
+        delete global.myPartial;
         expect($('article').text()).to.equal("I'm a teapot!");
       }
     });

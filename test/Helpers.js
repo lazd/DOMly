@@ -53,7 +53,7 @@ describe('Block helpers', function() {
     test({
       fixture: 'Helper with non-function',
       exec: function() {
-        global.myHelper = 'Some text!'
+        global.myHelper = 'Some text!';
       },
       done: function($) {
         delete global.myHelper;
