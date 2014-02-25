@@ -6,6 +6,10 @@
   "scripts": {
     "test": "mocha"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lazd/domly.git"
+  },
   "author": "Larry Davis <lazdnet@gmail.com>",
   "license": "BSD-2-Clause",
   "dependencies": {
