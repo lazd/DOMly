@@ -1,6 +1,6 @@
 var cheerio = require('cheerio');
 var inlineElements = require('./lib/elements-inline.js');
-var parser = require('./lib/parser.js');
+var parsers = require('./lib/parsers.js');
 
 var variableRE = /\{\{\s*(.*?)\s*\}\}/g;
 var blankRE = /^[\s]*$/;
@@ -109,33 +109,6 @@ function prettyPrint(node, spaces) {
   }
 }
 
-function getVariableArray(string) {
-  var array = [];
-  var lastOffset = 0;
-
-  string.replace(variableRE, function(match, p1, offset, string) {
-    // Add intermediate text
-    var text = string.slice(lastOffset, offset);
-    if (text.length) {
-      array.push(text);
-    }
-
-    // Add variables
-    array.push({ type: 'statement', statement: p1 });
-
-    lastOffset = offset + match.length;
-
-    return match;
-  });
-
-  // Add the last bit of text
-  if (lastOffset !== string.length) {
-    array.push(string.slice(lastOffset));
-  }
-
-  return array;
-}
-
 function isInline(el) {
   if (!el) {
     return false;
@@ -239,7 +212,7 @@ Compiler.prototype.makeVariableStatement = function(string) {
   }
 
   var statement = '';
-  var pieces = getVariableArray(string);
+  var pieces = parsers.text.parse(string);
   for (var i = 0; i < pieces.length; i++) {
     var piece = pieces[i];
 
@@ -248,11 +221,11 @@ Compiler.prototype.makeVariableStatement = function(string) {
       statement += '+';
     }
 
-    if (typeof piece === 'string') {
+    if (piece.type === 'content') {
       // Include text directly
-      statement += safe(piece);
+      statement += safe(piece.value);
     }
-    else if (piece.type === 'statement') {
+    else if (piece.type === 'block') {
       // Substitute variables
       statement += this.data(piece.statement);
     }
@@ -278,7 +251,7 @@ Compiler.prototype.data = function(path) {
     return 'i'+(iteratorNameIndex+1);
   }
 
-  var result = parser.parse(path);
+  var result = parsers.statement.parse(path);
 
   if (this.options.debug) {
     console.log('Parsed statement:', result);
@@ -300,7 +273,7 @@ Compiler.prototype.globalStatement = function(path, defaultArgs) {
     throw new Error('Cannot create global statement, provided path is empty');
   }
 
-  var result = parser.parse(path);
+  var result = parsers.statement.parse(path);
 
   if (this.options.debug) {
     console.log('Parsed statement:', result);
