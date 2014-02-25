@@ -31,6 +31,26 @@ describe('Inline helpers', function() {
       }
     });
   });
+
+  it('should support sub-expressions', function() {
+    test({
+      fixture: 'Helper with sub-expression',
+      globals: {
+        capitalize: function(str) {
+          return str.slice(0,1).toUpperCase()+str.slice(1);
+        },
+        lowercase: function(str) {
+          return str.toLowerCase();
+        }
+      },
+      data: {
+        name: 'My Name'
+      },
+      done: function($) {
+        expect($('body').text()).to.equal('My name');
+      }
+    });
+  });
 });
 
 describe('Block helpers', function() {
