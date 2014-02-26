@@ -1,0 +1,22 @@
+<div class="person">
+  <h1 class="name"><%- obj.name %></h1>
+  <h2 class="title"><%- this.toTitleCase(obj.title) %></h2>
+  <a class="send-mail" href="mailto:<%- obj.email %>">Send Message</a>
+  <dl id="headline" class="demographic-info">
+    <% if (obj.location) { %>
+      <dt>Location</dt>
+      <dd class="locality"><%- obj.location %></dd>
+    <% } %>
+    <dt>Industry</dt>
+    <dd class="industry"><%- obj.industry %></dd>
+  </dl>
+  <ul class="skills">
+    <% var that = this;
+    	_.each(obj.skills, function(skill) { %>
+      <li class="competency skill">
+        <h3><a href="#skill_<%- skill.name %>"><%- skill.name %></a></h3>
+        <span class="proficiency">(<%- that.formatLevel(skill.level) %>, <%- that.formatYears(skill.years) %> experience)</span>
+      </li>
+    <% }); %>
+  </ul>
+</div>

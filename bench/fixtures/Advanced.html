@@ -1,0 +1,21 @@
+<div class="person">
+  <h1 class="name">{{data.name}}</h1>
+  <h2 class="title">{{this.toTitleCase(data.title)}}</h2>
+  <a class="send-mail" href="mailto:{{data.email}}">Send Message</a>
+  <dl id="headline" class="demographic-info">
+    <if data.location>
+      <dt>Location</dt>
+      <dd class="locality">{{data.location}}</dd>
+    </if>
+    <dt>Industry</dt>
+    <dd class="industry">{{data.industry}}</dd>
+  </dl>
+  <ul class="skills">
+    <foreach data.skills>
+      <li class="competency skill">
+        <h3><a href="#skill_{{data.name}}">{{data.name}}</a></h3>
+        <span class="proficiency">({{this.formatLevel(data.level)}}, {{this.formatYears(data.years)}} experience)</span>
+      </li>
+    </foreach>
+  </ul>
+</div>

@@ -1,0 +1,21 @@
+<div class="person">
+  <h1 class="name">{{= it.name }}</h1>
+  <h2 class="title">{{= this.toTitleCase(it.title) }}</h2>
+  <a class="send-mail" href="mailto:{{= it.email }}">Send Message</a>
+  <dl id="headline" class="demographic-info">
+    {{? it.location }}
+      <dt>Location</dt>
+      <dd class="locality">{{= it.location }}</dd>
+    {{?}}
+    <dt>Industry</dt>
+    <dd class="industry">{{= it.industry }}</dd>
+  </dl>
+  <ul class="skills">
+    {{~it.skills :skill:index}}
+      <li class="competency skill">
+        <h3><a href="#skill_{{= skill.name }}">{{= skill.name }}</a></h3>
+        <span class="proficiency">({{= this.formatLevel(skill.level) }}, {{= this.formatYears(skill.years) }} experience)</span>
+      </li>
+    {{~}}
+  </ul>
+</div>

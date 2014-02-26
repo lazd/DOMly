@@ -5,15 +5,14 @@ window.createTarget = function() {
     result.parentNode.removeChild(result);
   }
 
-  document.body.insertAdjacentHTML('beforeend', '<div id="result"></div>');
+  // Add a new one
+  result = document.createElement('div');
+  result.id = 'result';
+  document.body.appendChild(result);
 };
 
-/* jshint -W054 */
-window.setup = function(fileName) {
-  var doSetHTML = new Function('createTarget();');
-
+window.setup = function(data) {
   return {
-    setup: doSetHTML,
-    onComplete: doSetHTML
+    setup: new Function('this.data = '+JSON.stringify(data)+'; window.createTarget();')
   };
 };
