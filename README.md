@@ -9,7 +9,7 @@ DOMly is named after [Dolly the sheep][Dolly], the first mammal to be cloned.
 
 ## Example
 
-DOMly's syntax is simply HTML with a few special elements and attribute prefixes thrown in, with Mustache-like syntax for variable substitution and method invocation.
+DOMly's syntax is simply HTML with a few special tags and attribute prefixes thrown in and Mustache-like syntax for variable substitution / method invocation.
 
 ```html
 <div>
@@ -139,12 +139,12 @@ Methods can be invoked as part of a statement.
 Invoked methods can be passed any arbitrary arguments. For instance:
 
 ```
-myMethod(data.dataProp,parent.parentProp,this.thisProp,globalVariable,globalObject.prop)
+myMethod(globalFunc(data.dataProp),parent.parentProp,this.thisProp,globalVariable,globalObject.prop)
 ```
 
 The above statement would invoke `myMethod` with the following:
 
-* The value of the current data context's `myDateProp` property
+* The return value of the global function `globalFunc` when passed the current data context's `myDateProp` property
 * The value of the parent data context's `myParentProp` property
 * The value of `this`'s `myScopeProp` property
 * The value of the global variable `myGlobalVariable`
