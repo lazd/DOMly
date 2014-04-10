@@ -316,7 +316,7 @@ If no arguments are passed, the current data context will be passed.
 
 Insert the returned string as text content.
 
-If `statement` is a function call, the text content inside of the `<helper> tag will be evaluated and passed as the last argument.
+If `statement` is a function call, the text content inside of the `<helper>` tag will be evaluated and passed as the last argument.
 
 
 ### `<js>`
