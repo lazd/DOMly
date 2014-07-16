@@ -408,6 +408,13 @@ Default: `false`
 
 Dump debug data, including the source file, parsed tree, and compiled function body.
 
+#### options.noFrags
+Type: `Boolean`  
+Default: `false`
+
+Don't create templates that immediately cache `DocumentFragment` objects. This is useful for web components where you don't want the `createdCallback` to be executed during template declaration.
+
+
 ### Example
 ```js
 var domly = require('domly');

@@ -625,7 +625,7 @@ Compiler.prototype.precompile = function(html) {
   functionBody = func.toString();
 
   // Use cached document fragments if no subsitutions happen
-  if (templateIsFragCandidate) {
+  if (!this.options.noFrags && templateIsFragCandidate) {
     this.statements = [
       '(function() {',
       '  var frag;',
