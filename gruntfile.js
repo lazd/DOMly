@@ -122,7 +122,7 @@ module.exports = function(grunt) {
       },
       main: {
         files: [ 'index.js' ],
-        tasks: [ 'jshint:main', 'karma:watch:run' ]
+        tasks: [ 'jshint:main', 'simplemocha', 'karma:watch:run' ]
       },
       fixtures: {
         files: [ 'test/fixtures/**/*.html' ],
