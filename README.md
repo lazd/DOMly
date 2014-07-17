@@ -420,6 +420,12 @@ Default: `false`
 
 Leave the `handle` attribute intact. By default, the `handle` attribute will not be added to the created elements.
 
+#### options.appendClassNames
+Type: `Boolean`  
+Default: `false`
+
+Append the contents of the `class` attribute value to the existing `className` property. This is useful when your web component sets its className in `createdCallback`.
+
 
 ### Example
 ```js

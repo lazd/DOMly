@@ -211,7 +211,10 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
 
   for (var i = 0; i < attrs.length; i++) {
     var asProperty = asProperties[attrs[i].attr];
-    if (asProperty) {
+    if (attrs[i].attr === 'class' && this.options.appendClassNames) {
+      this.pushStatement(elName+'.'+asProperty+' += '+this.makeVariableStatement(' '+attrs[i].value)+';');
+    }
+    else if (asProperty) {
       this.pushStatement(elName+'.'+asProperty+' = '+this.makeVariableStatement(attrs[i].value)+';');
     }
     else {

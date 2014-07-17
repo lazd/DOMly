@@ -1,3 +1,4 @@
+/* jshint -W098 */
 var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
@@ -35,6 +36,33 @@ describe('Options', function() {
         },
         options: {
           stripWhitespace: true
+        }
+      });
+    });
+
+    it('should append classNames when options.appendClassNames is true', function() {
+      test({
+        fixture: 'Custom Elements - With class property',
+        done: function($, fixture, template, templateString) {
+          expect(templateString).to.have.string('el0.className += " myNewClass";');
+        },
+        options: {
+          appendClassNames: true
+        }
+      });
+    });
+
+    it('should append classNames when options.appendClassNames is true with variables', function() {
+      test({
+        fixture: 'Custom Elements - With class property substitute',
+        done: function($, fixture, template, templateString) {
+          expect(templateString).to.have.string('el0.className += " "+data_0["className"];');
+        },
+        data: {
+          className: 'myNewClass'
+        },
+        options: {
+          appendClassNames: true
         }
       });
     });
