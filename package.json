@@ -3,6 +3,9 @@
   "version": "0.0.3",
   "description": "A template system that generates DOM",
   "main": "index.js",
+  "engines": {
+    "node" : ">=0.10"
+  },
   "scripts": {
     "test": "mocha"
   },
