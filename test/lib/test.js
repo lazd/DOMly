@@ -1,7 +1,9 @@
 var path = require('path');
 var fs = require('fs');
 var expect = require('chai').expect;
-var compile = require('../../index.js').compile;
+var domly = require('../../index.js');
+var precompile = domly.precompile;
+var compile = domly.compile;
 var getFixture = require('./getFixture.js');
 var jsdom = require('jsdom');
 var jquery = fs.readFileSync(path.join(__dirname, '..', '..', 'bower_components', 'jquery', 'dist', 'jquery.js'), 'utf-8');
@@ -18,15 +20,20 @@ function test(options) {
     options.options.debug = true;
   }
 
-  var fixture = getFixture(options.fixture);
-
-  if (options.throwOnCompile) {
-    return expect(function() {
-      compile(fixture, options.options);
-    }).to.Throw(Error);
+  function doCompile() {
+    functionText = precompile(fixture, options.options);
+    template = compile(fixture, options.options);
   }
 
-  var template = compile(fixture, options.options);
+  var fixture = getFixture(options.fixture);
+  var functionText = '';
+  var template;
+
+  if (options.throwOnCompile) {
+    return expect(doCompile).to.Throw(Error);
+  }
+
+  doCompile();
 
   jsdom.env({
     html: html,
@@ -71,7 +78,7 @@ function test(options) {
         console.log(document.body.innerHTML);
       }
 
-      options.done($, fixture, template, root, document, window);
+      options.done($, fixture, template, functionText, root, document, window);
 
       // Unset globals
       if (options.globals) {

@@ -147,7 +147,7 @@ function Compiler(options) {
   this.options = options || {};
 }
 
-Compiler.prototype.createElement = function(elName, el) {
+Compiler.prototype.createElement = function(elName, el, customElement) {
   var tag = el.name;
   var elHandle = el.attribs.handle;
   var statement = 'var '+elName+' = ';
@@ -160,7 +160,14 @@ Compiler.prototype.createElement = function(elName, el) {
     statement += 'this['+elHandleStatementBare+']'+' = ';
   }
 
-  statement += 'document.createElement('+safe(tag)+');';
+  statement += 'document.createElement('+safe(tag);
+
+  // Add second argument for custom element creation
+  if (customElement) {
+    statement += ','+safe(customElement);
+  }
+
+  statement += ');';
 
   if (elHandle && handleUsesDollar) {
     statement += '\nthis["$"+'+elHandleStatementBare+'] = $('+elName+');';
@@ -514,7 +521,9 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         this.createTextNode(elName, text);
       }
       else {
-        this.createElement(elName, el);
+        // Pass the is attribute as the third argument
+        // This tells createElement to handle custom elements
+        this.createElement(elName, el, el.attribs.is);
 
         var attrs = el.attribs;
         for (var attr in attrs) {
