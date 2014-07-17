@@ -528,7 +528,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         var attrs = el.attribs;
         for (var attr in attrs) {
           // Skip internal handles
-          if (attr === 'handle') {
+          if (attr === 'handle' && !this.options.preserveHandleAttr) {
             continue;
           }
 

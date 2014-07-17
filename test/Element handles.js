@@ -53,4 +53,20 @@ describe('Element handles', function() {
       },
     });
   });
+
+  it('should leave the handle attribute intact', function() {
+    var obj = {};
+    test({
+      fixture: 'List with handles',
+      obj: obj,
+      options: {
+        preserveHandleAttr: true
+      },
+      done: function($) {
+        expect($('ul[handle="list"]').get(0)).to.equal(obj.list);
+        expect($('li[handle="item1"]').get(0)).to.equal(obj.item1);
+        expect($('li[handle="item2"]').get(0)).to.equal(obj.item2);
+      },
+    });
+  });
 });

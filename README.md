@@ -414,6 +414,12 @@ Default: `false`
 
 Don't create templates that immediately cache `DocumentFragment` objects. This is useful for web components where you don't want the `createdCallback` to be executed during template declaration.
 
+#### options.preserveHandleAttr
+Type: `Boolean`  
+Default: `false`
+
+Leave the `handle` attribute intact. By default, the `handle` attribute will not be added to the created elements.
+
 
 ### Example
 ```js
