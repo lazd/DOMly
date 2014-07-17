@@ -58,6 +58,13 @@ function hasSubstitutions(node) {
   if (node.type === 'text') {
     return !!node.data.match(variableRE);
   }
+  else {
+    for (var attr in node.attribs) {
+      if (node.attribs[attr].match(variableRE)) {
+        return true;
+      }
+    }
+  }
 
   return false;
 }
@@ -617,6 +624,10 @@ Compiler.prototype.precompile = function(html) {
   this.buildFunctionBody(root);
 
   if (this.options.debug) {
+    this.statements.unshift('console.log("Data:", data);');
+  }
+
+  if (this.options.debug > 1) {
     this.statements.unshift('console.log("Value of this:", this);');
   }
 
