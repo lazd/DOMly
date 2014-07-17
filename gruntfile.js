@@ -112,6 +112,10 @@ module.exports = function(grunt) {
       }
     },
     watch: {
+      grammar: {
+        files: ['lib/*.jison'],
+        tasks: ['simplemocha']
+      },
       jshint: {
         files: ['gruntfile.js'],
         tasks: ['jshint']
@@ -120,9 +124,13 @@ module.exports = function(grunt) {
         files: [ 'index.js' ],
         tasks: [ 'jshint:main', 'karma:watch:run' ]
       },
+      fixtures: {
+        files: [ 'test/fixtures/**/*.html' ],
+        tasks: [ 'simplemocha' ]
+      },
       tests: {
         files: [ 'test/**/*.js' ],
-        tasks: [ 'jshint:tests', 'mocha' ]
+        tasks: [ 'jshint:tests', 'simplemocha' ]
       },
       bench: {
         files: [ 'bench/**/*.js' ],
