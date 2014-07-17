@@ -1,7 +1,7 @@
 var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
-describe.only('Literals', function() {
+describe('Literals', function() {
   it('should allow a double-quoted string literal as the only argument', function() {
     test({
       fixture: 'Literals - Double-quoted string',
