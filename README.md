@@ -426,6 +426,12 @@ Default: `false`
 
 Append the contents of the `class` attribute value to the existing `className` property. This is useful when your web component sets its className in `createdCallback`.
 
+#### options.preserveComments
+Type: `Boolean`  
+Default: `false`
+
+Leave comment nodes intact in the rendered template. By default, comment nodes will not be included.
+
 
 ### Example
 ```js

@@ -66,5 +66,42 @@ describe('Options', function() {
         }
       });
     });
+
+    it('should strip comments by default', function() {
+      test({
+        fixture: 'Comments',
+        done: function($, fixture, template, templateString) {
+          expect(templateString).to.not.have.string('This is a comment');
+        },
+        data: {
+          className: 'myNewClass'
+        }
+      });
+    });
+
+    it('should preserve comments when options.preserveComments is true', function() {
+      test({
+        fixture: 'Comments',
+        done: function($, fixture, template, templateString) {
+          expect(templateString).to.have.string('This is a comment');
+        },
+        data: {
+          className: 'myNewClass'
+        },
+        options: {
+          preserveComments: true
+        }
+      });
+
+      test({
+        fixture: 'Comments',
+        done: function($, fixture, template, templateString) {
+          expect(templateString).to.not.have.string('This is a comment');
+        },
+        data: {
+          className: 'myNewClass'
+        }
+      });
+    });
   });
 });

@@ -183,6 +183,12 @@ Compiler.prototype.createElement = function(elName, el, customElement) {
   this.pushStatement(statement);
 };
 
+Compiler.prototype.createComment = function(elName, text) {
+  var statement = 'var '+elName+' = document.createComment('+safe(text)+');';
+
+  this.pushStatement(statement);
+};
+
 Compiler.prototype.setAttribute = function(elName, attr, value) {
   var attrs = [];
   var conditionalAttrMatch = attr.match(conditionalAttrRE);
@@ -399,6 +405,12 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
   for (var i = 0; i < root.children.length; i++) {
     var el = root.children[i];
+
+    if (el.type === 'comment' && !this.options.preserveComments) {
+      // Skip comment nodes
+      continue;
+    }
+
     var elName = 'el'+(this.count++);
 
     // Process special tags
@@ -530,7 +542,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
         this.createTextNode(elName, text);
       }
-      else {
+      else if (el.type === 'tag') {
         // Pass the is attribute as the third argument
         // This tells createElement to handle custom elements
         this.createElement(elName, el, el.attribs.is);
@@ -557,6 +569,9 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         else if (children.length) {
           this.buildFunctionBody(el, elName);
         }
+      }
+      else if (el.type === 'comment') {
+        this.createComment(elName, el.data);
       }
 
       if (this.root !== elName) {
