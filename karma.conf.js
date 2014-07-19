@@ -81,7 +81,10 @@ module.exports = function(config) {
 
     // If browser does not capture in given timeout [ms], kill it
     // CLI --capture-timeout 5000
-    captureTimeout: 20000,
+    captureTimeout: 120000,
+
+    // Benchmarks might take some time to report back, so don't timeout quickly
+    browserNoActivityTimeout: 120000,
 
     // Auto run tests on start (when browsers are captured) and exit
     // CLI --single-run --no-single-run
