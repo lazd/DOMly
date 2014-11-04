@@ -349,6 +349,11 @@ Compiler.prototype.globalStatementFromNode = function(node, defaultArgs) {
 
     // Calculate correct variable name
     var parentNum = this.nestCount - i;
+
+    if (parentNum < 0) {
+      throw new Error('parent used without loop context');
+    }
+
     statement = 'data_'+parentNum;
   }
 

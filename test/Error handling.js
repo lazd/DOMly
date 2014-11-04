@@ -37,6 +37,17 @@ describe('Error handling', function() {
         }
       });
     });
+
+    it('should throw if parent is encountered outside of a loop', function() {
+      test({
+        throwOnCompile: true,
+        fixture: 'Parent without loop',
+        done: function() {
+          // Should never be reached
+          assert.fail(null, null, 'Callback should not have been executed');
+        }
+      });
+    });
   });
 });
 
