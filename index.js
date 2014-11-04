@@ -243,10 +243,6 @@ Compiler.prototype.createTextNode = function(elName, text) {
 };
 
 Compiler.prototype.makeVariableStatement = function(string) {
-  if (!usesVariables(string)) {
-    return safe(string);
-  }
-
   var statement = '';
   var pieces = parsers.text.parse(string);
   for (var i = 0; i < pieces.length; i++) {

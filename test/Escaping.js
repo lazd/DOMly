@@ -10,7 +10,9 @@ describe('Escaping', function() {
       },
       done: function($, fixture, template, functionText) {
         var html = document.body.innerHTML;
-        expect(html).to.contain('{{This is the stache of}}');
+        expect(html).to.contain('{{Outer with data}}');
+        expect(html).to.contain('{{Nested with data}}');
+        expect(html).to.contain('{{Nested}}');
       }
     });
   });
