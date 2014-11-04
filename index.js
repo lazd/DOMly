@@ -56,11 +56,11 @@ function hasConditionAttributesOrHandles(node) {
 
 function hasSubstitutions(node) {
   if (node.type === 'text') {
-    return !!node.data.match(variableRE);
+    return usesVariables(node.data);
   }
   else {
     for (var attr in node.attribs) {
-      if (node.attribs[attr].match(variableRE)) {
+      if (usesVariables(node.attribs[attr])) {
         return true;
       }
     }
@@ -144,7 +144,7 @@ function safe(string) {
 }
 
 function usesVariables(string) {
-  return string.match(variableRE);
+  return !!string.match(variableRE);
 }
 
 function Compiler(options) {
