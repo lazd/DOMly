@@ -702,6 +702,7 @@ Compiler.prototype.compile = function(html) {
 };
 
 module.exports = {
+  Compiler: Compiler,
   compile: function(html, options) {
     var compiler = new Compiler(options);
     return compiler.compile(html);
