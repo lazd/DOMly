@@ -4,7 +4,9 @@
 %lex
 %%
 
-(\\\{|\\\}|[^{}])+    return 'CONTENT';
+([^{}\\])+            return 'CONTENT';
+"\\{"                 return 'ESCAPED_LEFT';
+"\\}"                 return 'ESCAPED_RIGHT';
 "{{"                  return '{{'
 "}}"                  return '}}'
 "{{{"                 return '{{{'
@@ -27,7 +29,9 @@ template
   ;
 
 content
-  : CONTENT -> $$ = [{ type: 'content', value: $1 }];
+  : ESCAPED_LEFT -> $$ = [{ type: 'content', value: '{' }];
+  | ESCAPED_RIGHT -> $$ = [{ type: 'content', value: '}' }];
+  | CONTENT -> $$ = [{ type: 'content', value: $1 }];
   ;
 
 block
