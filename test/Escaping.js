@@ -8,7 +8,7 @@ describe('Escaping', function() {
       data: {
         name: 'Stacheman'
       },
-      done: function($, fixture, template, functionText) {
+      done: function() {
         var html = document.body.innerHTML;
         expect(html).to.contain('{{Outer with data}}');
         expect(html).to.contain('{{Nested with data}}');
