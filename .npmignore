@@ -1,0 +1,13 @@
+/build
+/lazdIgnore
+/bower_components
+/bench
+/test
+/vendor
+/tasks
+bower.json
+gruntfile.js
+karma.conf.js
+.travis.yml
+*.sublime-workspace
+*.sublime-project
