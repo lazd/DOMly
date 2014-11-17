@@ -273,7 +273,7 @@ Compiler.prototype.data = function(path) {
   }
 
   if (path === 'data') {
-    return 'data_'+this.nestCount;
+    return 'stack['+this.nestCount+']';
   }
 
   // Match named iterators
@@ -350,9 +350,9 @@ Compiler.prototype.globalStatementFromNode = function(node, defaultArgs) {
       throw new Error('parent used without loop context');
     }
 
-    statement = 'data_'+parentNum;
+    statement = 'stack['+parentNum+']';
   }
-  else if (pieces[0] === 'scope') {
+  else if (this.options.useScope && pieces[0] === 'scope') {
     if (pieces.length > 1) {
       statement = '__resolve('+safe(pieces[1])+')';
       i = 2;
@@ -366,7 +366,7 @@ Compiler.prototype.globalStatementFromNode = function(node, defaultArgs) {
     piece = pieces[i];
     if (piece === 'data' && i === 0) {
       // Correctly assign initial data
-      statement = 'data_'+this.nestCount;
+      statement = 'stack['+this.nestCount+']';
       continue;
     }
     else if (piece === 'this' && i === 0) {
@@ -434,7 +434,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
       this.pushStatement(parentName+'.appendChild(document.createTextNode('+statement+'));');
     }
     else if (el.name === 'partial') {
-      statement = this.globalStatement(Object.keys(el.attribs).join(''), 'data_'+this.nestCount);
+      statement = this.globalStatement(Object.keys(el.attribs).join(''), 'stack['+this.nestCount+']');
 
       // Call the partial in the current context
       // Add the returned document fragment
@@ -443,20 +443,14 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
     }
     else if (el.name === 'js') {
       // Make sure the data variable is set correctly as loops will change it
-      this.pushStatement('data = data_'+this.nestCount+';');
+      this.pushStatement('data = stack['+this.nestCount+'];');
 
       // Add literal JavaScript
       // @todo add support for define/update
       this.pushStatement($(el).text()+'');
 
-      if (this.options.useScope) {
-        // Re-assign scope context
-        this.pushStatement('stack['+this.nestCount+'] = data_'+this.nestCount+' = data;');
-      }
-      else {
-        // Set data context to modified data variable as it may have been reassigned
-        this.pushStatement('data_'+this.nestCount+' = data;');
-      }
+      // Set data context to modified data variable as it may have been reassigned
+      this.pushStatement('stack['+this.nestCount+'] = data;');
     }
     else if (el.name === 'if' || el.name === 'unless') {
       var not = (el.name === 'unless');
@@ -531,12 +525,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         this.pushStatement('for (var i'+nc+' in '+iteratedVar+') {');
       }
       this.indent++;
-      if (this.options.useScope) {
-        this.pushStatement('var data_'+nc+' = data = stack['+nc+'] = '+iteratedVar+'[i'+nc+'];');
-      }
-      else {
-        this.pushStatement('var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];');
-      }
+      this.pushStatement('data = stack['+nc+'] = '+iteratedVar+'[i'+nc+'];');
 
       this.buildFunctionBody(el, parentName);
       this.indent--;
@@ -546,10 +535,8 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         this.iteratorNames.pop();
       }
 
-      if (this.options.useScope) {
-        // Drop the object we "pushed" inside of the loop body
-        this.pushStatement('stack.pop();');
-      }
+      // Drop the object we "pushed" inside of the loop body
+      this.pushStatement('stack.pop();');
 
       // Reset nest count
       --this.nestCount;
@@ -663,20 +650,17 @@ Compiler.prototype.precompile = function(html) {
 
   if (html.match(jsTagRE)) {
     // If we use eval, ensure initial data is defined so eval can modify it
-    this.pushStatement('var data = data_0 = typeof data_0 === "undefined" ? {} : data_0;');
+    this.pushStatement('var data = data_in = typeof data_in === "undefined" ? {} : data_in;');
   }
   else {
     // Tack a data declaration on so loops can use it
-    this.pushStatement('var data = data_0;');
+    this.pushStatement('var data;');
   }
 
+  // A stack to track variable scoping, starting with the base object
+  this.pushStatement('var stack = [data_in];');
+
   if (this.options.useScope) {
-    // A stack to track variable scoping
-    this.pushStatement('var stack = [];');
-
-    // Add the base object
-    this.pushStatement('stack.push(data_0);');
-
     // Add the helper function
     this.pushStatement('function __resolve(p) {' +
     '  for (var i = stack.length - 1; i >= 0; i--) {' +
@@ -705,7 +689,7 @@ Compiler.prototype.precompile = function(html) {
   }
 
   // Compile first to check for errors
-  var func = new Function('data_0', functionBody);
+  var func = new Function('data_in', functionBody);
 
   // Convert back to a string
   functionBody = func.toString();

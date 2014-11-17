@@ -56,7 +56,7 @@ describe('Options', function() {
       test({
         fixture: 'Custom Elements - With class property substitute',
         done: function($, fixture, template, templateString) {
-          expect(templateString).to.have.string('el0.className += " "+data_0["className"];');
+          expect(templateString).to.have.string('el0.className += " "+stack[0]["className"];');
         },
         data: {
           className: 'myNewClass'
