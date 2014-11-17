@@ -352,6 +352,15 @@ Compiler.prototype.globalStatementFromNode = function(node, defaultArgs) {
 
     statement = 'data_'+parentNum;
   }
+  else if (pieces[0] === 'scope') {
+    if (pieces.length > 1) {
+      statement = '__resolve('+safe(pieces[1])+')';
+      i = 2;
+    }
+    else {
+      throw new Error('scope used without sub-property');
+    }
+  }
 
   for (; i < pieces.length; i++) {
     piece = pieces[i];
@@ -667,6 +676,14 @@ Compiler.prototype.precompile = function(html) {
 
     // Add the base object
     this.pushStatement('stack.push(data_0);');
+
+    // Add the helper function
+    this.pushStatement('function __resolve(p) {' +
+    '  for (var i = stack.length - 1; i >= 0; i--) {' +
+    '    if (stack[i].hasOwnProperty(p)) return stack[i][p];' +
+    '  }' +
+    '  return "";' +
+    '}');
   }
 
   // Build function body

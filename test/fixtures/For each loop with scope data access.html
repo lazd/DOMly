@@ -1,18 +1,7 @@
-<js>
-  function scope(prop) {
-    for (var i = stack.length - 1; i >= 0; i--) {
-      if (stack[i].hasOwnProperty(prop)) {
-        return stack[i][prop];
-      }
-    }
-    return '';
-  }
-</js>
-
-<h1>{{scope('name')}}</h1>
+<h1>{{scope.name}}</h1>
 <js>
   if(stack.length !== 1) {
-    throw new Error('Scope length is incorrect');
+    throw new Error('Stack size is incorrect');
   }
 </js>
 
@@ -20,28 +9,28 @@
   <foreach data.items>
   <js>
     if(stack.length !== 2) {
-      throw new Error('Scope length is incorrect');
+      throw new Error('Stack size is incorrect');
     }
   </js>
     <li>
-      <h2>{{scope('name')}}</h2>
+      <h2>{{scope.name}}</h2>
       <ul class="nested">
         <foreach data.children>
           <js>
             if(stack.length !== 3) {
-              throw new Error('Scope length is incorrect');
+              throw new Error('Stack size is incorrect');
             }
           </js>
-          <li>{{scope('name')}}</li>
+          <li>{{scope.name}}</li>
         </foreach>
       </ul>
-      <p>{{scope('description')}}</p>
+      <p>{{scope.description}}</p>
     </li>
   </foreach>
 </ul>
 <js>
   if(stack.length !== 1) {
-    throw new Error('Scope length is incorrect');
+    throw new Error('Stack size is incorrect');
   }
 </js>
-<p class="outer">{{scope('description')}}</p>
+<p class="outer">{{scope.description}}</p>

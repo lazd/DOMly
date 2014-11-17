@@ -2,19 +2,16 @@ var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
 describe('Scoping', function() {
-  var menuData = require('./fixtures/Menu data.json');
-  it('should set the scope variable to an array', function() {
+  var menuData = require('./fixtures/data/Menu.json');
+
+  it('should resolve the deepest instance of a variable when referencing scope', function() {
     test({
       fixture: 'For each loop with scope data access',
       data: menuData,
       options: {
-        useScope: true,
-        stripWhitespace: true
+        useScope: true
       },
-      done: function($, fixture, template, functionText, root, document, window) {
-        console.log(functionText);
-        console.log(document.body.innerHTML);
-
+      done: function($) {
         expect($('h1').text()).to.equal('Menu');
         expect($('p.outer').text()).to.equal('Menu description');
 
@@ -30,4 +27,32 @@ describe('Scoping', function() {
       }
     });
   });
+
+  it('should resolve parent properties if child property is undefined when referencing scope', function() {
+    test({
+      fixture: 'For each loop with scope data access to undefined properties',
+      data: {
+        category: 'Furniture',
+        items: [
+          {
+            name: 'Sofas'
+          },
+          {
+            name: 'Tables'
+          }
+        ]
+      },
+      options: {
+        useScope: true,
+        stripWhitespace: true
+      },
+      done: function($) {
+        expect($('h1').text()).to.equal('Furniture');
+
+        expect($('li')[0].textContent).to.equal('Furniture: Sofas');
+        expect($('li')[1].textContent).to.equal('Furniture: Tables');
+      }
+    });
+  });
+
 });
