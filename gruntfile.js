@@ -150,7 +150,7 @@ module.exports = function(grunt) {
   grunt.registerTask('build', [ 'jshint', 'compile', 'handlebars', 'dot', 'jst' ]);
   grunt.registerTask('default', [ 'clean', 'build' ]);
 
-  grunt.registerTask('bench', [ 'karma:firefox', 'karma:safari', 'karma:chrome' ]);
+  grunt.registerTask('bench', [ 'bench:prepare', 'karma:chrome', 'karma:firefox', 'karma:safari' ]);
   grunt.registerTask('bench:prepare', [ 'build', 'clean:results' ]);
   grunt.registerTask('bench:chrome', [ 'bench:prepare', 'karma:chrome' ]);
   grunt.registerTask('bench:firefox', [ 'bench:prepare', 'karma:firefox' ]);

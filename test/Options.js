@@ -32,7 +32,7 @@ describe('Options', function() {
       test({
         fixture: 'Preformatted text',
         done: function($) {
-          expect($('body').html()).to.equal('<pre>\nThis   is   preformated   text.\nIt   should   remain   unmolested.\n</pre>');
+          expect($('pre').text()).to.equal('\nThis   is   preformated   text.\nIt   should   remain   unmolested.\n');
         },
         options: {
           stripWhitespace: true

@@ -2,7 +2,7 @@ var path = require('path');
 var precompile = require('../index.js').precompile;
 
 module.exports = function(grunt) {
-  grunt.registerMultiTask('compile', 'Precompile ATML templates.', function() {
+  grunt.registerMultiTask('compile', 'Precompile DOMly templates.', function() {
     var options = this.options({
       namespace: 'templates'
     });
