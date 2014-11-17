@@ -27,17 +27,6 @@ describe('Foreach loops', function() {
     });
   });
 
-  it('should reset data context after loop', function() {
-    test({
-      fixture: 'For each loop with data with post loop access',
-      data: data,
-      done: function($) {
-        expect($('span')[0].textContent).to.equal('');
-        expect($('span')[1].textContent).to.equal('');
-      }
-    });
-  });
-
   it('should set allow iterator over return value of method invocation', function() {
     test({
       fixture: 'For each on return value of method invocation',

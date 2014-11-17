@@ -39,4 +39,17 @@ describe('Eval', function() {
       }
     });
   });
+
+  it('should reset data context for eval after loop', function() {
+    test({
+      fixture: 'Eval with data after for each',
+      data: {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }]
+      },
+      done: function($) {
+        expect($('span')[0].textContent).to.equal('');
+        expect($('span')[1].textContent).to.equal('');
+      }
+    });
+  });
 });
