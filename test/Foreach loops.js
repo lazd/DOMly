@@ -2,9 +2,7 @@ var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
 describe('Foreach loops', function() {
-  var data = {
-    items: [{ name: 'Item 1' }, { name: 'Item 2' }]
-  };
+  var data = require('./fixtures/data/Menu.json');
 
   it('should loop once for each item in set', function() {
     test({
@@ -107,36 +105,7 @@ describe('Foreach loops', function() {
   it('should access correct data context after loop completes', function() {
     test({
       fixture: 'For each loop with pre and post data access',
-      data: {
-        name: 'Menu',
-        description: 'Menu description',
-        items: [
-          {
-            name: 'Item 1',
-            description: 'Item 1 description',
-            children: [
-              {
-                name: 'Item 1.1'
-              },
-              {
-                name: 'Item 1.2'
-              }
-            ]
-          },
-          {
-            name: 'Item 2',
-            description: 'Item 2 description',
-            children: [
-              {
-                name: 'Item 2.1'
-              },
-              {
-                name: 'Item 2.2'
-              }
-            ]
-          }
-        ]
-      },
+      data: data,
       options: {
         stripWhitespace: true
       },
