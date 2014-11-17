@@ -5,6 +5,7 @@
 %%
 
 [\w\d_$]+\b           return 'VAR'
+"."                   return '.' // Come before NUMBER so numbers can be used in paths
 [-+]?[0-9]*\.?[0-9]+  return 'NUMBER'
 \'[^']+\'             return 'SINGLE_QUOTED_STRING'
 \"[^"]+\"             return 'DOUBLE_QUOTED_STRING'
@@ -12,7 +13,6 @@
 "'"                   return 'SINGLE_QUOTE'
 "("                   return '('
 ")"                   return ')'
-"."                   return '.'
 ","                   return ','
 ";"                   return ';'
 \s+                   /* skip whitespace */

@@ -52,6 +52,20 @@ describe('Variables', function() {
     });
   });
 
+  it('should allow properties as numbers', function() {
+    test({
+      fixture: 'Data with number properties',
+      done: function($) {
+        expect($('li')[0].textContent).to.equal('Item 1');
+        expect($('li')[1].textContent).to.equal('Item 2');
+      },
+      data: [
+        'Item 1',
+        'Item 2',
+      ]
+    });
+  });
+
   it('should support method invocation', function() {
     test({
       fixture: 'Method invocation with arguments',
