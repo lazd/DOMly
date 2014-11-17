@@ -1,0 +1,10 @@
+<ul>
+  <foreach data.items>
+    <li>{{data.name}}</li>
+  </foreach>
+</ul>
+<js>
+  data.blub = data.name;
+</js>
+<span>{{data.blub}}</span>
+<span>{{data.name}}</span>
