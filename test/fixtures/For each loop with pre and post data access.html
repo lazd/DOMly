@@ -1,0 +1,15 @@
+<h1>{{data.name}}</h1>
+<ul class="outer">
+  <foreach data.items>
+    <li>
+      <h2>{{data.name}}</h2>
+      <ul class="nested">
+        <foreach data.children>
+          <li>{{data.name}}</li>
+        </foreach>
+      </ul>
+      <p>{{data.description}}</p>
+    </li>
+  </foreach>
+</ul>
+<p class="outer">{{data.description}}</p>

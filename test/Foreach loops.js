@@ -104,6 +104,59 @@ describe('Foreach loops', function() {
     });
   });
 
+  it('should access correct data context after loop completes', function() {
+    test({
+      fixture: 'For each loop with pre and post data access',
+      data: {
+        name: 'Menu',
+        description: 'Menu description',
+        items: [
+          {
+            name: 'Item 1',
+            description: 'Item 1 description',
+            children: [
+              {
+                name: 'Item 1.1'
+              },
+              {
+                name: 'Item 1.2'
+              }
+            ]
+          },
+          {
+            name: 'Item 2',
+            description: 'Item 2 description',
+            children: [
+              {
+                name: 'Item 2.1'
+              },
+              {
+                name: 'Item 2.2'
+              }
+            ]
+          }
+        ]
+      },
+      options: {
+        stripWhitespace: true
+      },
+      done: function($) {
+        expect($('h1').text()).to.equal('Menu');
+        expect($('p.outer').text()).to.equal('Menu description');
+
+        expect($('h2')[0].textContent).to.equal('Item 1');
+        expect($('p')[0].textContent).to.equal('Item 1 description');
+        expect($('h2')[1].textContent).to.equal('Item 2');
+        expect($('p')[1].textContent).to.equal('Item 2 description');
+
+        expect($('ul.nested > li')[0].textContent).to.equal('Item 1.1');
+        expect($('ul.nested > li')[1].textContent).to.equal('Item 1.2');
+        expect($('ul.nested > li')[2].textContent).to.equal('Item 2.1');
+        expect($('ul.nested > li')[3].textContent).to.equal('Item 2.2');
+      }
+    });
+  });
+
   it('should set loop over sets at nested properties', function() {
     test({
       fixture: 'For each loop over nested set',

@@ -433,11 +433,14 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
       this.pushStatement(parentName+'.appendChild('+statement+');');
     }
     else if (el.name === 'js') {
+      // Make sure the data variable is set correctly as loops will change it
+      this.pushStatement('data = data_'+this.nestCount+';');
+
       // Add literal JavaScript
       // @todo add support for define/update
       this.pushStatement($(el).text()+'');
 
-      // Reset data
+      // Set data context to modified data variable as it may have been reassigned
       this.pushStatement('data_'+this.nestCount+' = data;');
     }
     else if (el.name === 'if' || el.name === 'unless') {
@@ -521,9 +524,8 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         this.iteratorNames.pop();
       }
 
-      // Reset nest count and data
+      // Reset nest count
       --this.nestCount;
-      this.pushStatement('data = data_'+this.nestCount+';');
     }
     else {
       if (el.type === 'text') {
