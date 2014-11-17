@@ -521,8 +521,9 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         this.iteratorNames.pop();
       }
 
-      // Reset nest count
+      // Reset nest count and data
       --this.nestCount;
+      this.pushStatement('data = data_'+this.nestCount+';');
     }
     else {
       if (el.type === 'text') {
