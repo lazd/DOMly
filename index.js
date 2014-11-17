@@ -440,8 +440,14 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
       // @todo add support for define/update
       this.pushStatement($(el).text()+'');
 
-      // Set data context to modified data variable as it may have been reassigned
-      this.pushStatement('data_'+this.nestCount+' = data;');
+      if (this.options.useScope) {
+        // Re-assign scope context
+        this.pushStatement('stack['+this.nestCount+'] = data_'+this.nestCount+' = data;');
+      }
+      else {
+        // Set data context to modified data variable as it may have been reassigned
+        this.pushStatement('data_'+this.nestCount+' = data;');
+      }
     }
     else if (el.name === 'if' || el.name === 'unless') {
       var not = (el.name === 'unless');
@@ -508,6 +514,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
       // @todo handle update
       this.pushStatement('var '+iteratedVar+' = '+iterated+';');
+
       if (isArray) {
         this.pushStatement('for (var i'+nc+' = 0, ni'+nc+' = '+iteratedVar+'.length; i'+nc+' < ni'+nc+'; i'+nc+'++) {');
       }
@@ -515,13 +522,24 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         this.pushStatement('for (var i'+nc+' in '+iteratedVar+') {');
       }
       this.indent++;
-      this.pushStatement('var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];');
+      if (this.options.useScope) {
+        this.pushStatement('var data_'+nc+' = data = stack['+nc+'] = '+iteratedVar+'[i'+nc+'];');
+      }
+      else {
+        this.pushStatement('var data_'+nc+' = data = '+iteratedVar+'[i'+nc+'];');
+      }
+
       this.buildFunctionBody(el, parentName);
       this.indent--;
       this.pushStatement('}');
 
       if (hasNamedIterator) {
         this.iteratorNames.pop();
+      }
+
+      if (this.options.useScope) {
+        // Drop the object we "pushed" inside of the loop body
+        this.pushStatement('stack.pop();');
       }
 
       // Reset nest count
@@ -634,14 +652,23 @@ Compiler.prototype.precompile = function(html) {
     this.pushStatement('var frag = document.createDocumentFragment();');
   }
 
-  // Ensure initial data is defined so eval can modify it
   if (html.match(jsTagRE)) {
+    // If we use eval, ensure initial data is defined so eval can modify it
     this.pushStatement('var data = data_0 = typeof data_0 === "undefined" ? {} : data_0;');
   }
   else {
-    // Tack a data declaration on so eval and foreach can use it
+    // Tack a data declaration on so loops can use it
     this.pushStatement('var data = data_0;');
   }
+
+  if (this.options.useScope) {
+    // A stack to track variable scoping
+    this.pushStatement('var stack = [];');
+
+    // Add the base object
+    this.pushStatement('stack.push(data_0);');
+  }
+
   // Build function body
   this.buildFunctionBody(root);
 
