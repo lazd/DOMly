@@ -68,7 +68,32 @@ function test(options) {
         }).to.Throw(Error);
       }
       else {
-        frag = template.call(options.obj, options.data);
+        try {
+          frag = template.call(options.obj, options.data);
+        }
+        catch (error) {
+          // Get the line number
+          var errorLine = (error.stack+'').split('\n')[1];
+          var lineAndChar = errorLine.slice(errorLine.indexOf('<anonymous>') + 12, errorLine.length - 1).split(':');
+
+          // Kill the stack
+          var stack = error.stack;
+          error.stack = '';
+
+          // Reset colors
+          error.message += '\033[0m';
+
+          // Add the template body and highlight the offending line
+          error.message += '\n\n'+template.toString().split('\n').map(function(line, index) {
+            line = '\t'+line;
+            if (index === lineAndChar[0] - 1) {
+              return '\033[31m'+line+'\033[0m';
+            }
+            return line;
+          }).join('\n');
+
+          throw error;
+        }
       }
 
       document.body.appendChild(frag);
