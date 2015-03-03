@@ -15,7 +15,7 @@ module.exports = function(config) {
       'build/hbs_templates.js',
       'build/dot_templates.js',
       'build/lodash_templates.js',
-      'bench/lib/*.js',
+      'bench/lib/setup.js',
       'bench/*.js'
     ],
 

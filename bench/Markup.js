@@ -1,7 +1,4 @@
 suite('Markup', function() {
-  window.htmlbars_templates = window.htmlbars_templates || {};
-  window.htmlbars_templates.Structure = HTMLBars.compile(__html__['bench/fixtures/hbs/Structure.hbs'])
-
   benchmark('DOMly', function() {
     var result = document.getElementById('result');
     while (result.firstChild) {
@@ -11,27 +8,32 @@ suite('Markup', function() {
     result.appendChild(templates.Structure());
   });
 
-  benchmark('HTMLbars', function() {
-    var result = document.getElementById('result');
-    while (result.firstChild) {
-      result.removeChild(result.firstChild);
-    }
+  if (!window.domlyOnly) {
+    window.htmlbars_templates = window.htmlbars_templates || {};
+    window.htmlbars_templates.Structure = HTMLBars.compile(__html__['bench/fixtures/hbs/Structure.hbs'])
 
-    result.appendChild(htmlbars_templates.Structure());
-  });
+    benchmark('HTMLbars', function() {
+      var result = document.getElementById('result');
+      while (result.firstChild) {
+        result.removeChild(result.firstChild);
+      }
 
-  benchmark('Handlebars', function() {
-    var result = document.getElementById('result');
-    result.innerHTML = hbs_templates.Structure();
-  });
+      result.appendChild(htmlbars_templates.Structure());
+    });
 
-  benchmark('doT', function() {
-    var result = document.getElementById('result');
-    result.innerHTML = dot_templates.Structure();
-  });
+    benchmark('Handlebars', function() {
+      var result = document.getElementById('result');
+      result.innerHTML = hbs_templates.Structure();
+    });
 
-  benchmark('lodash', function() {
-    var result = document.getElementById('result');
-    result.innerHTML = lodash_templates.Structure();
-  });
+    benchmark('doT', function() {
+      var result = document.getElementById('result');
+      result.innerHTML = dot_templates.Structure();
+    });
+
+    benchmark('lodash', function() {
+      var result = document.getElementById('result');
+      result.innerHTML = lodash_templates.Structure();
+    });
+  }
 }, setup());

@@ -23,12 +23,8 @@ suite('Advanced', function() {
   };
 
   for (var helper in helpers) {
-    Handlebars.registerHelper(helper, helpers[helper]);
+    templates[helper] = helpers[helper];
   }
-
-  _.extend(templates, helpers);
-  _.extend(dot_templates, helpers);
-  _.extend(lodash_templates, helpers);
 
   benchmark('DOMly', function() {
     var result = document.getElementById('result');
@@ -38,20 +34,28 @@ suite('Advanced', function() {
     result.appendChild(templates.Advanced(this.data));
   });
 
-  benchmark('Handlebars', function() {
-    var result = document.getElementById('result');
-    result.innerHTML = hbs_templates.Advanced(this.data);
-  });
+  if (!window.domlyOnly) {
+    for (var helper in helpers) {
+      Handlebars.registerHelper(helper, helpers[helper]);
+      dot_templates[helper] = helpers[helper];
+      lodash_templates[helper] = helpers[helper];
+    }
 
-  benchmark('doT', function() {
-    var result = document.getElementById('result');
-    result.innerHTML = dot_templates.Advanced(this.data);
-  });
+    benchmark('Handlebars', function() {
+      var result = document.getElementById('result');
+      result.innerHTML = hbs_templates.Advanced(this.data);
+    });
 
-  benchmark('lodash', function() {
-    var result = document.getElementById('result');
-    result.innerHTML = lodash_templates.Advanced(this.data);
-  });
+    benchmark('doT', function() {
+      var result = document.getElementById('result');
+      result.innerHTML = dot_templates.Advanced(this.data);
+    });
+
+    benchmark('lodash', function() {
+      var result = document.getElementById('result');
+      result.innerHTML = lodash_templates.Advanced(this.data);
+    });
+  }
 }, setup({
   name: 'Code Monkey',
   location: 'San Francisco',

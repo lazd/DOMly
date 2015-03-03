@@ -50,6 +50,16 @@ module.exports = function(grunt) {
       safari: {
         browsers: ['Safari']
       },
+      domly: {
+        options: {
+          files: [
+            'build/templates.js',
+            'bench/lib/setup.js',
+            'bench/lib/domlyOnly.js',
+            'bench/*.js'
+          ]
+        }
+      },
       // Watch configuration
       watch: {
         background: true,
@@ -156,6 +166,7 @@ module.exports = function(grunt) {
   grunt.registerTask('bench:firefox', [ 'bench:prepare', 'karma:firefox' ]);
   grunt.registerTask('bench:safari', [ 'bench:prepare', 'karma:safari' ]);
   grunt.registerTask('bench:ios', [ 'bench:prepare', 'karma:ios' ]);
+  grunt.registerTask('bench:domly', [ 'bench:prepare', 'karma:domly' ]);
   grunt.registerTask('test', [ 'jshint', 'simplemocha' ]);
   grunt.registerTask('dev', [ 'karma:watch:start', 'watch' ]);
 };
