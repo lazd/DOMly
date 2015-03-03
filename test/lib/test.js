@@ -77,7 +77,6 @@ function test(options) {
           var lineAndChar = errorLine.slice(errorLine.indexOf('<anonymous>') + 12, errorLine.length - 1).split(':');
 
           // Kill the stack
-          var stack = error.stack;
           error.stack = '';
 
           // Reset colors
