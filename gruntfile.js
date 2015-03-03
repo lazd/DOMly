@@ -1,6 +1,13 @@
 var path = require('path');
 
 module.exports = function(grunt) {
+  var domlyBenchFiles = [
+    'build/templates.js',
+    'bench/lib/setup.js',
+    'bench/lib/domlyOnly.js',
+    'bench/*.js'
+  ];
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     clean: {
@@ -50,14 +57,28 @@ module.exports = function(grunt) {
       safari: {
         browsers: ['Safari']
       },
-      domly: {
+      'domly-chrome': {
+        browsers: ['Chrome'],
         options: {
-          files: [
-            'build/templates.js',
-            'bench/lib/setup.js',
-            'bench/lib/domlyOnly.js',
-            'bench/*.js'
-          ]
+          files: domlyBenchFiles
+        }
+      },
+      'domly-firefox': {
+        browsers: ['Firefox'],
+        options: {
+          files: domlyBenchFiles
+        }
+      },
+      'domly-safari': {
+        browsers: ['Safari'],
+        options: {
+          files: domlyBenchFiles
+        }
+      },
+      'domly-ios': {
+        browsers: ['iOS'],
+        options: {
+          files: domlyBenchFiles
         }
       },
       // Watch configuration
@@ -166,7 +187,10 @@ module.exports = function(grunt) {
   grunt.registerTask('bench:firefox', [ 'bench:prepare', 'karma:firefox' ]);
   grunt.registerTask('bench:safari', [ 'bench:prepare', 'karma:safari' ]);
   grunt.registerTask('bench:ios', [ 'bench:prepare', 'karma:ios' ]);
-  grunt.registerTask('bench:domly', [ 'bench:prepare', 'karma:domly' ]);
+  grunt.registerTask('bench:domly', [ 'bench:prepare', 'karma:domly-chrome', 'karma:domly-firefox', 'karma:domly-safari' ]);
+  grunt.registerTask('bench:domly-chrome', [ 'bench:prepare', 'karma:domly-chrome' ]);
+  grunt.registerTask('bench:domly-firefox', [ 'bench:prepare', 'karma:domly-firefox' ]);
+  grunt.registerTask('bench:domly-safari', [ 'bench:prepare', 'karma:domly-safari' ]);
   grunt.registerTask('test', [ 'jshint', 'simplemocha' ]);
   grunt.registerTask('dev', [ 'karma:watch:start', 'watch' ]);
 };
