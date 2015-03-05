@@ -10,9 +10,14 @@ suite('Loops', function() {
 
   if (!window.domlyOnly) {
     /*
-    window.htmlbars_templates = {
-      TagList: HTMLBars.compile(__html__['bench/fixtures/hbs/TagList.hbs'])
-    };
+    var HTMLBars = requireModule('htmlbars');
+    var DOMHelper = requireModule('dom-helper').default;
+    var domHelper = new DOMHelper();
+    var hooks = requireModule('htmlbars-runtime').hooks;
+    var helpers = requireModule('htmlbars-runtime').helpers;
+
+    window.htmlbars_templates = window.htmlbars_templates || {};
+    window.htmlbars_templates.TagList = HTMLBars.compile(__html__['bench/fixtures/hbs/TagList.hbs']);
 
     benchmark('HTMLBars', function() {
       var result = document.getElementById('result');
@@ -20,7 +25,14 @@ suite('Loops', function() {
         result.removeChild(result.firstChild);
       }
 
-      result.appendChild(htmlbars_templates.TagList(this.data, { helpers: HTMLBars.helpers }));
+      var frag = htmlbars_templates.TagList.render(this.data, {
+        hooks: hooks,
+        helpers: helpers,
+        dom: domHelper,
+        useFragmentCache: true,
+        canClone: true
+      }, result);
+      result.appendChild(frag);
     });
     */
 

@@ -8,9 +8,14 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'bench/fixtures/hbs/*.hbs',
-      'vendor/htmlbars-0.1.0.js',
       'bower_components/handlebars/handlebars.runtime.js',
       'bower_components/lodash/lodash.js',
+      'node_modules/htmlbars/dist/assets/loader.js',
+      'node_modules/htmlbars/dist/amd/htmlbars.amd.js',
+      'node_modules/htmlbars/dist/amd/htmlbars-syntax.amd.js',
+      'node_modules/htmlbars/dist/amd/htmlbars-compiler.amd.js',
+      'node_modules/htmlbars/dist/amd/htmlbars-runtime.amd.js',
+      'node_modules/htmlbars/dist/amd/htmlbars-util.amd.js',
       'build/templates.js',
       'build/hbs_templates.js',
       'build/dot_templates.js',

@@ -9,6 +9,12 @@ suite('Markup', function() {
   });
 
   if (!window.domlyOnly) {
+    var HTMLBars = requireModule('htmlbars');
+    var DOMHelper = requireModule('dom-helper').default;
+    var domHelper = new DOMHelper();
+    var hooks = requireModule('htmlbars-runtime').hooks;
+    var helpers = requireModule('htmlbars-runtime').helpers;
+
     window.htmlbars_templates = window.htmlbars_templates || {};
     window.htmlbars_templates.Structure = HTMLBars.compile(__html__['bench/fixtures/hbs/Structure.hbs'])
 
@@ -18,7 +24,14 @@ suite('Markup', function() {
         result.removeChild(result.firstChild);
       }
 
-      result.appendChild(htmlbars_templates.Structure());
+      var frag = htmlbars_templates.Structure.render(null, {
+        hooks: hooks,
+        helpers: helpers,
+        dom: domHelper,
+        useFragmentCache: true,
+        canClone: true
+      }, result);
+      result.appendChild(frag);
     });
 
     benchmark('Handlebars', function() {

@@ -11,6 +11,12 @@ suite('Variables', function() {
   });
 
   if (!window.domlyOnly) {
+    var HTMLBars = requireModule('htmlbars');
+    var DOMHelper = requireModule('dom-helper').default;
+    var domHelper = new DOMHelper();
+    var hooks = requireModule('htmlbars-runtime').hooks;
+    var helpers = requireModule('htmlbars-runtime').helpers;
+
     window.htmlbars_templates = window.htmlbars_templates || {};
     window.htmlbars_templates.Person = HTMLBars.compile(__html__['bench/fixtures/hbs/Person.hbs'])
 
@@ -20,7 +26,14 @@ suite('Variables', function() {
         result.removeChild(result.firstChild);
       }
 
-      result.appendChild(htmlbars_templates.Person(this.data, { helpers: HTMLBars.helpers }));
+      var frag = htmlbars_templates.Person.render(this.data, {
+        hooks: hooks,
+        helpers: helpers,
+        dom: domHelper,
+        useFragmentCache: true,
+        canClone: true
+      }, result);
+      result.appendChild(frag);
     });
 
     benchmark('Handlebars', function() {
