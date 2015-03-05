@@ -1,6 +1,6 @@
 # DOMly [![NPM version][npm-image]][npm-url] [![Build status][travis-image]][travis]
 > The fast template system that creates and clones DOM nodes
-<img src="http://i.imgur.com/kWjdMgE.png" align="right" alt="DOMly logo">
+<img src="http://i.imgur.com/meGfFyq.png" align="right" alt="DOMly logo">
 
 DOMly uses `cloneNode` and `createElement` to render templates in the browser up to **7 times faster** than [doT] and [Handlebars].
 
