@@ -10,7 +10,7 @@ module.exports = function(config) {
       'bench/fixtures/hbs/*.hbs',
       'vendor/htmlbars-0.1.0.js',
       'bower_components/handlebars/handlebars.runtime.js',
-      'bower_components/lodash/dist/lodash.js',
+      'bower_components/lodash/lodash.js',
       'build/templates.js',
       'build/hbs_templates.js',
       'build/dot_templates.js',

@@ -41,7 +41,7 @@
     "karma-benchmark": "^0.4.0",
     "karma-benchmark-reporter": "^0.1.1",
     "karma-html2js-preprocessor": "^0.1.0",
-    "handlebars": "^2.0.0",
-    "dot": "^1.0.2"
+    "handlebars": "^3.0.0",
+    "dot": "^1.0.3"
   }
 }
