@@ -52,7 +52,7 @@ describe('Markup creation', function() {
   it('should support boolean attributes', function() {
     test({
       fixture: 'Boolean attributes',
-      done: function($, fixture, template, templateString) {
+      done: function($) {
         expect($('input').is(':disabled')).to.equal(true);
         expect($('input').attr('booleanattr')).to.equal('');
       }
@@ -62,7 +62,7 @@ describe('Markup creation', function() {
   it('should support script tags', function() {
     test({
       fixture: 'Script tag',
-      done: function($, fixture, template, templateString) {
+      done: function($) {
         var script = $('script')[0];
         expect(script.getAttribute('src')).to.equal('a.js');
         expect(script.getAttribute('async')).to.equal('');
