@@ -48,4 +48,14 @@ describe('Markup creation', function() {
       }
     });
   });
+
+  it('should support boolean attributes', function() {
+    test({
+      fixture: 'Boolean attributes',
+      done: function($, fixture, template, templateString) {
+        expect($('input').is(':disabled')).to.equal(true);
+        expect($('input').attr('booleanattr')).to.equal('');
+      }
+    });
+  });
 });

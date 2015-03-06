@@ -224,8 +224,13 @@ Compiler.prototype.setAttribute = function(elName, attr, value) {
       this.pushStatement(elName+'.'+asProperty+' = '+this.makeVariableStatement(attrs[i].value)+';');
     }
     else {
-      // Process both the attribute and the value to allow statements in either
-      this.pushStatement(elName+'.setAttribute('+this.makeVariableStatement(attrs[i].attr)+', '+this.makeVariableStatement(attrs[i].value)+');');
+      // Empty string literal for empty string
+      var value = attrs[i].value === '' ? '""' : this.makeVariableStatement(attrs[i].value);
+
+      // Process the attribute name to allow statements in it as well as the value
+      var statement = elName+'.setAttribute('+this.makeVariableStatement(attrs[i].attr)+', '+value+');';
+
+      this.pushStatement(statement);
     }
   }
 
