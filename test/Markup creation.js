@@ -58,4 +58,16 @@ describe('Markup creation', function() {
       }
     });
   });
+
+  it('should support script tags', function() {
+    test({
+      fixture: 'Script tag',
+      done: function($, fixture, template, templateString) {
+        var script = $('script')[0];
+        expect(script.getAttribute('src')).to.equal('a.js');
+        expect(script.getAttribute('async')).to.equal('');
+        expect(script.textContent).to.equal("alert('Script!');");
+      }
+    });
+  });
 });

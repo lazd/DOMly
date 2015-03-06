@@ -551,7 +551,7 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
         this.createTextNode(elName, text);
       }
-      else if (el.type === 'tag') {
+      else if (el.type === 'tag' || el.type === 'script') {
         // Pass the is attribute as the third argument
         // This tells createElement to handle custom elements
         this.createElement(elName, el, el.attribs.is);
