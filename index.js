@@ -551,7 +551,10 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
 
         this.createTextNode(elName, text);
       }
-      else if (el.type === 'tag' || el.type === 'script') {
+      else if (el.type === 'comment') {
+        this.createComment(elName, el.data);
+      }
+      else {
         // Pass the is attribute as the third argument
         // This tells createElement to handle custom elements
         this.createElement(elName, el, el.attribs.is);
@@ -578,9 +581,6 @@ Compiler.prototype.buildFunctionBody = function(root, parentName) {
         else if (children.length) {
           this.buildFunctionBody(el, elName);
         }
-      }
-      else if (el.type === 'comment') {
-        this.createComment(elName, el.data);
       }
 
       if (this.root !== elName) {

@@ -70,4 +70,15 @@ describe('Markup creation', function() {
       }
     });
   });
+
+  it('should support style tags', function() {
+    test({
+      fixture: 'Style tag',
+      done: function($) {
+        var script = $('style')[0];
+        expect(script.getAttribute('type')).to.equal('text/css');
+        expect(script.textContent).to.equal('body { margin: 0; }');
+      }
+    });
+  });
 });
