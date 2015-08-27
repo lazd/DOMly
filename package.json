@@ -1,6 +1,6 @@
 {
   "name": "domly",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A template system that generates DOM",
   "main": "index.js",
   "engines": {
