@@ -432,6 +432,12 @@ Default: `false`
 
 Leave comment nodes intact in the rendered template. By default, comment nodes will not be included.
 
+#### options.markerAttribute
+Type: `String`  
+Default: `''`
+
+An attribute to set on all generated elements (excluding comment nodes and text nodes).
+
 
 ### Example
 ```js

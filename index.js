@@ -181,6 +181,11 @@ Compiler.prototype.createElement = function(elName, el, customElement) {
   }
 
   this.pushStatement(statement);
+
+  // Add the marker attribute to the element
+  if (this.options.markerAttribute) {
+    this.pushStatement(elName+'.setAttribute('+safe(this.options.markerAttribute)+', "");');
+  }
 };
 
 Compiler.prototype.createComment = function(elName, text) {

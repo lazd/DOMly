@@ -114,4 +114,19 @@ describe('Options', function() {
       }
     });
   });
+
+  it('should add options.markerAttribute to all generated elements', function(done) {
+    test({
+      fixture: 'List',
+      done: function($, fixture, template, templateString) {
+        $('body *').each(function(index, el) {
+          expect(el.hasAttribute('marker-attribute')).to.equal(true);
+        });
+        done();
+      },
+      options: {
+        markerAttribute: 'marker-attribute'
+      }
+    });
+  });
 });
