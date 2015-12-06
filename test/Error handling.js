@@ -1,4 +1,3 @@
-var assert = require('chai').assert;
 var test = require('./lib/test.js');
 
 describe('Error handling', function() {
