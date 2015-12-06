@@ -63,9 +63,13 @@ function test(options) {
 
       var frag;
       if (options.throwOnRender) {
-        return expect(function() {
+        expect(function() {
           frag = template.call(options.obj, options.data);
         }).to.Throw(Error);
+
+        options.done();
+
+        return;
       }
       else {
         try {

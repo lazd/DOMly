@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
 describe('Escaping', function() {
-  it('should support escaping curly braces', function() {
+  it('should support escaping curly braces', function(done) {
     test({
       fixture: 'Escaped curly braces',
       data: {
@@ -13,6 +13,7 @@ describe('Escaping', function() {
         expect(html).to.contain('{{Outer with data}}');
         expect(html).to.contain('{{Nested with data}}');
         expect(html).to.contain('{{Nested}}');
+        done();
       }
     });
   });

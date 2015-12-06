@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
 describe('Inline helpers', function() {
-  it('should pass variables to helpers', function() {
+  it('should pass variables to helpers', function(done) {
     test({
       fixture: 'Helper with args',
       data: { name: 'name' },
@@ -13,11 +13,12 @@ describe('Inline helpers', function() {
       },
       done: function($) {
         expect($('body').text()).to.equal('Name');
+        done();
       }
     });
   });
 
-  it('should allow passing of current data context to helper', function() {
+  it('should allow passing of current data context to helper', function(done) {
     test({
       fixture: 'Helper with data',
       data: { name: 'name' },
@@ -28,11 +29,12 @@ describe('Inline helpers', function() {
       },
       done: function($) {
         expect($('body').text()).to.equal('Name');
+        done();
       }
     });
   });
 
-  it('should support sub-expressions', function() {
+  it('should support sub-expressions', function(done) {
     test({
       fixture: 'Helper with sub-expression',
       globals: {
@@ -48,13 +50,14 @@ describe('Inline helpers', function() {
       },
       done: function($) {
         expect($('body').text()).to.equal('My name');
+        done();
       }
     });
   });
 });
 
 describe('Block helpers', function() {
-  it('should be passed a block if no arguments provided', function() {
+  it('should be passed a block if no arguments provided', function(done) {
     test({
       fixture: 'Helper with block',
       data: { name: 'name' },
@@ -65,11 +68,12 @@ describe('Block helpers', function() {
       },
       done: function($) {
         expect($('body').text()).to.equal('Name');
+        done();
       }
     });
   });
 
-  it('should support non-function helpers', function() {
+  it('should support non-function helpers', function(done) {
     test({
       fixture: 'Helper with non-function',
       exec: function() {
@@ -78,11 +82,12 @@ describe('Block helpers', function() {
       done: function($) {
         delete global.myHelper;
         expect($('body').text()).to.equal('Some text!');
+        done();
       }
     });
   });
 
-  it('should be passed a block in addition to arguments', function() {
+  it('should be passed a block in addition to arguments', function(done) {
     test({
       fixture: 'Helper with block and args',
       data: {
@@ -98,6 +103,7 @@ describe('Block helpers', function() {
       },
       done: function($) {
         expect($('body').text()).to.equal('Larry is my name, code is my game');
+        done();
       }
     });
   });

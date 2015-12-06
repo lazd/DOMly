@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
 describe('Element handles', function() {
-  it('should assign handles', function() {
+  it('should assign handles', function(done) {
     var obj = {};
     test({
       fixture: 'List with handles',
@@ -11,11 +11,12 @@ describe('Element handles', function() {
         expect($('ul').get(0)).to.equal(obj.list);
         expect($('li').get(0)).to.equal(obj.item1);
         expect($('li').get(1)).to.equal(obj.item2);
+        done();
       }
     });
   });
 
-  it('should assign jQuery handles', function() {
+  it('should assign jQuery handles', function(done) {
     var obj = {};
     test({
       fixture: 'List with jQuery handles',
@@ -27,11 +28,12 @@ describe('Element handles', function() {
         expect(obj.$list.is($('ul').get(0))).to.be.true;
         expect(obj.$item1.is($('li').get(0))).to.be.true;
         expect(obj.$item2.is($('li').get(1))).to.be.true;
+        done();
       },
     });
   });
 
-  it('should support statements in handles', function() {
+  it('should support statements in handles', function(done) {
     var obj = {};
     test({
       fixture: 'For each with handles',
@@ -50,11 +52,12 @@ describe('Element handles', function() {
         expect(obj.$ul_MainList.is($('ul').get(0))).to.be.true;
         expect(obj.$li_0.is($('li').get(0))).to.be.true;
         expect(obj.$li_1.is($('li').get(1))).to.be.true;
+        done();
       },
     });
   });
 
-  it('should leave the handle attribute intact', function() {
+  it('should leave the handle attribute intact', function(done) {
     var obj = {};
     test({
       fixture: 'List with handles',
@@ -66,6 +69,7 @@ describe('Element handles', function() {
         expect($('ul[handle="list"]').get(0)).to.equal(obj.list);
         expect($('li[handle="item1"]').get(0)).to.equal(obj.item1);
         expect($('li[handle="item2"]').get(0)).to.equal(obj.item2);
+        done();
       },
     });
   });

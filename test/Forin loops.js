@@ -7,13 +7,14 @@ describe('Forin loops', function() {
     price: '500'
   };
 
-  it('should support named iterators', function() {
+  it('should support named iterators', function(done) {
     test({
       fixture: 'For in loop',
       data: data,
       done: function($) {
         expect($('li')[0].textContent).to.equal('name: Item');
         expect($('li')[1].textContent).to.equal('price: 500');
+        done();
       }
     });
   });

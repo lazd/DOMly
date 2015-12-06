@@ -3,43 +3,51 @@ var sinon = require('sinon');
 var test = require('./lib/test.js');
 
 describe('Conditionals', function() {
-  it('should support if', function() {
+  it('should support if when conditional is true', function(done) {
     test({
       fixture: 'If statement',
       data: { second: true },
       done: function($) {
         expect($('p').length).to.equal(2);
+        done();
       }
     });
+  });
 
+  it('should support if when conditional is false', function(done) {
     test({
       fixture: 'If statement',
       data: { second: false },
       done: function($) {
         expect($('p').length).to.equal(1);
+        done();
       }
     });
   });
 
-  it('should support unless', function() {
+  it('should support unless when conditional is false', function(done) {
     test({
       fixture: 'Unless statement',
       data: { second: false },
       done: function($) {
         expect($('p').length).to.equal(2);
+        done();
       }
     });
+  });
 
+  it('should support unless when conditional is true', function(done) {
     test({
       fixture: 'Unless statement',
       data: { second: true },
       done: function($) {
         expect($('p').length).to.equal(1);
+        done();
       }
     });
   });
 
-  it('should support if on methods', function() {
+  it('should support if on methods', function(done) {
     var spy = sinon.spy();
     var data = {
       method: function() {
@@ -54,11 +62,12 @@ describe('Conditionals', function() {
       done: function($) {
         expect(spy.called).to.be.true;
         expect($('p').length).to.equal(0);
+        done();
       }
     });
   });
 
-  it('should support if on methods with arguments', function() {
+  it('should support if on methods with arguments', function(done) {
     var spy = sinon.spy();
     var data = {
       args: {
@@ -77,34 +86,40 @@ describe('Conditionals', function() {
       done: function($) {
         expect(spy.called).to.be.true;
         expect($('p').length).to.equal(1);
+        done();
       }
     });
   });
 
-  it('should support if-else', function() {
+  it('should support if-else when conditional is true', function(done) {
     test({
       fixture: 'If-else statement',
       data: { first: true },
       done: function($) {
         expect($('p').text()).to.equal('First option');
+        done();
       }
     });
+  });
 
+  it('should support if-else when conditional is false', function(done) {
     test({
       fixture: 'If-else statement',
       data: { first: false },
       done: function($) {
         expect($('p').text()).to.equal('Second option');
+        done();
       }
     });
   });
 
-  it('should support nested if-else', function() {
+  it('should support nested if-else', function(done) {
     test({
       fixture: 'If-else nested',
       data: { first: false, second: false },
       done: function($) {
         expect($('p').text()).to.equal('Third option');
+        done();
       }
     });
   });
@@ -123,7 +138,7 @@ describe('Conditionals', function() {
     });
   });
 
-  it('should set attributes conditionally', function() {
+  it('should set attributes conditionally when conditional is true', function(done) {
     var items = ['Item 1', 'Item 2'];
 
     test({
@@ -134,8 +149,13 @@ describe('Conditionals', function() {
         expect($('button#disabledWithClass').hasClass('disabledButton')).to.be.true;
         expect($('li').hasClass('disabledItem')).to.be.true;
         expect($('a').hasClass('enabledLink')).to.be.false;
+        done();
       }
     });
+  });
+
+  it('should set attributes conditionally when conditional is false', function(done) {
+    var items = ['Item 1', 'Item 2'];
 
     test({
       fixture: 'Conditional attributes',
@@ -145,11 +165,12 @@ describe('Conditionals', function() {
         expect($('button#disabledWithClass').hasClass('disabledButton')).to.be.false;
         expect($('li').hasClass('disabledItem')).to.be.false;
         expect($('a').hasClass('enabledLink')).to.be.true;
+        done();
       }
     });
   });
 
-  it('should set attributes conditionally with data in attributes', function() {
+  it('should set attributes conditionally with data in attributes', function(done) {
     test({
       fixture: 'Conditional attributes with data in attributes',
       data: {
@@ -162,47 +183,38 @@ describe('Conditionals', function() {
         expect($('button#disabled').is(':disabled')).to.be.true;
         expect($('button#disabled').attr('class')).to.equal('customDisabledClass');
         expect($('button#disabled').attr('title')).to.equal('A title');
+        done();
       }
     });
   });
 
-  it('should set attributes conditionally with method invocation', function() {
+  it('should set attributes conditionally with method invocation', function(done) {
     test({
       fixture: 'Conditional attributes with method invocation',
       data: { isDisabled: function() { return true; } },
       done: function($) {
         expect($('button#disabled').is(':disabled')).to.be.true;
+        done();
       }
     });
   });
 
-  it('should set attributes conditionally with method invocation and arguments', function() {
+  it('should set attributes conditionally with method invocation and arguments', function(done) {
     test({
       fixture: 'Conditional attributes with method invocation and arguments',
       data: { isDisabled: function(arg1, arg2) { return arg1 && arg2; }, arg1: true, arg2: true },
       done: function($) {
         expect($('button#disabled').is(':disabled')).to.be.true;
+        done();
       }
     });
   });
 
-  it('should support conditionals against parent value', function() {
+  it('should support conditionals against parent value', function(done) {
     var items = [
       { name: 'Item 1' },
       { name: 'Item 2' }
     ];
-
-    // test({
-    //   fixture: 'For each with nested parent conditional',
-    //   debug: true,
-    //   data: {
-    //     showItems: false,
-    //     items: items
-    //   },
-    //   done: function($) {
-    //     expect($('li').length).to.equal(0);
-    //   }
-    // });
 
     test({
       fixture: 'For each with nested parent conditional',
@@ -212,6 +224,7 @@ describe('Conditionals', function() {
       },
       done: function($) {
         expect($('li').length).to.equal(2);
+        done();
       }
     });
   });

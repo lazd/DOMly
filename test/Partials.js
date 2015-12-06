@@ -4,7 +4,7 @@ var getFixture = require('./lib/getFixture.js');
 var compile = require('../index.js').compile;
 
 describe('Partials', function() {
-  it('should pass current data context to partials if no arguments provided', function() {
+  it('should pass current data context to partials if no arguments provided', function(done) {
     var data = { name: 'The Name', description: 'The description.' };
     test({
       fixture: 'Partial without args',
@@ -15,11 +15,12 @@ describe('Partials', function() {
       done: function($) {
         expect($('h1').text()).to.equal(data.name);
         expect($('p').text()).to.equal(data.description);
+        done();
       }
     });
   });
 
-  it('should support non-function partials', function() {
+  it('should support non-function partials', function(done) {
     var data = { info: { name: 'The Name', description: 'The description.' } };
     test({
       fixture: 'Partial with non-function',
@@ -31,11 +32,12 @@ describe('Partials', function() {
       done: function($) {
         delete global.myPartial;
         expect($('article').text()).to.equal("I'm a teapot!");
+        done();
       }
     });
   });
 
-  it('should pass arguments to partials', function() {
+  it('should pass arguments to partials', function(done) {
     var data = { info: { name: 'The Name', description: 'The description.' } };
     test({
       fixture: 'Partial with args',
@@ -46,11 +48,12 @@ describe('Partials', function() {
       done: function($) {
         expect($('h1').text()).to.equal(data.info.name);
         expect($('p').text()).to.equal(data.info.description);
+        done();
       }
     });
   });
 
-  it('should invoke partials on current context with this.myPartial', function() {
+  it('should invoke partials on current context with this.myPartial', function(done) {
     var data = { info: { name: 'The Name', description: 'The description.' } };
     test({
       fixture: 'Partial on context object',
@@ -61,11 +64,12 @@ describe('Partials', function() {
       done: function($) {
         expect($('h1').text()).to.equal(data.info.name);
         expect($('p').text()).to.equal(data.info.description);
+        done();
       }
     });
   });
 
-  it('should invoke partials on data with data.myPartial', function() {
+  it('should invoke partials on data with data.myPartial', function(done) {
     var data = {
       info: { name: 'The Name', description: 'The description.' },
       myPartial: eval(compile(getFixture('Name and description')))
@@ -76,6 +80,7 @@ describe('Partials', function() {
       done: function($) {
         expect($('h1').text()).to.equal(data.info.name);
         expect($('p').text()).to.equal(data.info.description);
+        done();
       }
     });
   });

@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var test = require('./lib/test.js');
 
 describe('Variables', function() {
-  it('should substitute variables', function() {
+  it('should substitute variables', function(done) {
     test({
       fixture: 'List with variables',
       done: function($) {
@@ -13,6 +13,7 @@ describe('Variables', function() {
         expect($('li').get(3).textContent).to.equal('data1 text1 data2 text2');
         expect($('span').get(0).textContent).to.equal('data2');
         expect($('span').get(1).textContent).to.equal('data4');
+        done();
       },
       data: {
         var1: 'data1',
@@ -24,11 +25,12 @@ describe('Variables', function() {
     });
   });
 
-  it('should substitute nested variables', function() {
+  it('should substitute nested variables', function(done) {
     test({
       fixture: 'Nested data',
       done: function($) {
         expect($('div').text()).to.equal('First Name');
+        done();
       },
       data: {
         person: {
@@ -40,11 +42,12 @@ describe('Variables', function() {
     });
   });
 
-  it('should allow use of data', function() {
+  it('should allow use of data', function(done) {
     test({
       fixture: 'Data with data',
       done: function($) {
         expect($('div').text()).to.equal('Name');
+        done();
       },
       data: {
         name: 'Name'
@@ -52,12 +55,13 @@ describe('Variables', function() {
     });
   });
 
-  it('should allow properties as numbers', function() {
+  it('should allow properties as numbers', function(done) {
     test({
       fixture: 'Data with number properties',
       done: function($) {
         expect($('li')[0].textContent).to.equal('Item 1');
         expect($('li')[1].textContent).to.equal('Item 2');
+        done();
       },
       data: [
         'Item 1',
@@ -66,7 +70,7 @@ describe('Variables', function() {
     });
   });
 
-  it('should support method invocation', function() {
+  it('should support method invocation', function(done) {
     test({
       fixture: 'Method invocation with arguments',
       done: function($) {
@@ -76,6 +80,7 @@ describe('Variables', function() {
         expect($('li')[0].textContent).to.equal('firstVal');
         expect($('li')[1].textContent).to.equal('firstValsecondVal');
         expect($('li')[2].textContent).to.equal('result');
+        done();
       },
       data: {
         passThrough: function(arg1, arg2) {
