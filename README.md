@@ -432,6 +432,12 @@ Default: `false`
 
 Leave comment nodes intact in the rendered template. By default, comment nodes will not be included.
 
+#### options.queryForHandleElements
+Type: `Boolean`  
+Default: `false`
+
+Query for existing elements by handle on `this` and re-use them instead of re-creating.
+
 
 ### Example
 ```js

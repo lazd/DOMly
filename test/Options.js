@@ -114,4 +114,27 @@ describe('Options', function() {
       }
     });
   });
+
+  it('should not create new elements when options.queryForHandleElements is set', function(done) {
+    test({
+      fixture: 'List with handles',
+      done: function($, fixture, template, functionText, root, document, window) {
+        var item1 = document.querySelector('[handle="item1"]');
+
+        var frag = template.call(document.body);
+        document.body.removeChild(document.querySelector('[handle="list"]'));
+
+        document.body.appendChild(frag);
+
+        expect(item1).to.equal(document.querySelector('[handle="item1"]'));
+        done();
+      },
+      options: {
+        obj: document,
+        preserveHandleAttr: true,
+        debug: true,
+        queryForHandleElements: true
+      }
+    });
+  });
 });

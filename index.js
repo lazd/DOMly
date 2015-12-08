@@ -165,6 +165,10 @@ Compiler.prototype.createElement = function(elName, el, customElement) {
     handleUsesDollar = elHandle.charAt(0) === '$';
     elHandleStatementBare = this.makeVariableStatement(handleUsesDollar ? elHandle.slice(1) : elHandle);
     statement += 'this['+elHandleStatementBare+']'+' = ';
+
+    if (this.options.queryForHandleElements) {
+      statement += 'this.querySelector('+safe('[handle='+elHandle+']')+') || ';
+    }
   }
 
   statement += 'document.createElement('+safe(tag);

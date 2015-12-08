@@ -44,6 +44,9 @@ function test(options) {
       var document = global.document = window.document;
       var $ = global.$ = window.$;
 
+      // Use document by default
+      options.obj = options.obj || document;
+
       // Set globals
       if (options.globals) {
         for (prop in options.globals) {
